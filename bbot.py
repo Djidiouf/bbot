@@ -44,7 +44,7 @@ ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ircsock.connect((args.server, 6667))  # Connect to port 6667
 
 # Sends the username, real name etc : user authentication
-ircsock.send(bytes("USER %s %s aaa :%s\r\n" % (args.botnick, args.botnick, args.botnick), "UTF-8"))
+ircsock.send(bytes("USER %s %s %s :%s\r\n" % (args.botnick, args.botnick, args.botnick, args.botnick), "UTF-8"))
 
 # Assignment of a nick to the bot
 ircsock.send(bytes("NICK %s\r\n" % args.botnick, "UTF-8"))
