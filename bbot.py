@@ -60,7 +60,7 @@ while 1:  # infinite loop
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # removes unnecessary linebreaks
     print(ircmsg)  # DEBUG: print output of the channel
 
-    # tracks "Hello <botname>"
+    # tracks "Hello <botname> <any message>"
     if ircmsg.find(bytes(":Hello %s" % args.botnick, "UTF-8")) != -1:
         hello()
 

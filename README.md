@@ -15,6 +15,18 @@ $ cd bbot
 $ python bbot.py -s <SERVER>  -c <CHANNEL> -b <BOTNICKNAME>
 ```
 
+Example
+```
+python bbot.py -s irc.freenode.net  -c ##rimbatou -b bbot
+```
+
+The channel name can be put between quotes if needed.
+
+Example
+```
+python bbot.py -s irc.freenode.net  -c "##rimbatou" -b bbot
+```
+
 ### Version
 0.1
 
