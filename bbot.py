@@ -13,6 +13,7 @@ import socket
 # Import argument library
 import argparse
 
+from datetime import datetime
 
 # functions ---------------------------------------------------------------------
 # functions that will do the handling of the servers's data
@@ -29,6 +30,9 @@ def join_chan(chan):  # Join channel
 def hello():  # Responds to a user that inputs "Hello <botname>"
     ircsock.send(bytes("PRIVMSG %s :Hello \r\n" % args.channel, "UTF-8"))
 
+
+def give_time():  # Responds to a user that inputs "Hello <botname>"
+    ircsock.send(bytes("PRIVMSG %s :Time is " % args.channel + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\r\n", "UTF-8"))
 
 # arguments ---------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='bbot, a bot without limits')
@@ -60,10 +64,14 @@ while 1:  # infinite loop
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # removes unnecessary linebreaks
     print(ircmsg)  # DEBUG: print output of the channel
 
+    # tracks PING : if the server pings the bot, it will answer
+    if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
+        ping()
+
     # tracks "Hello <botname> <any message>"
     if ircmsg.find(bytes(":Hello %s" % args.botnick, "UTF-8")) != -1:
         hello()
 
-    # tracks PING : if the server pings the bot, it will answer
-    if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
-        ping()
+    # tracks "Hello <botname> <any message>"
+    if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
+        give_time()
