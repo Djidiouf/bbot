@@ -40,13 +40,6 @@ class Message:
     def give_time(self, tz_string):  # Responds to a user that inputs "!time Continent/City"
         # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
-        # divide the string in a tuple: 'str1', 'separator', 'str2'
-        # tuple_string = tz_string.partition(':')
-        # tz = tuple_string[0]
-        # delta = tuple_string[2]
-        # if delta:
-        #     delta = int(delta)
-
         tz = tz_string
 
         if tz == 'bchat':
@@ -71,15 +64,17 @@ class Message:
         # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
         # /!\ currently only "utc" is working
 
-        # divide the string in a tuple: 'str1', 'separator', 'str2'
+        # divide a string in a tuple: 'str1', 'separator', 'str2'
         tuple_string = string.partition(' ')
         tz = tuple_string[0]
         time_string = tuple_string[2]
 
+        # divide a string in a tuple: 'str1', 'separator', 'str2'
         tuple_time = time_string.partition(':')
         simple_hour = tuple_time[0]
         simple_minute = tuple_time[2]
 
+        # hour and minute need to be int and not string
         hour = int(simple_hour)
         minute = int(simple_minute)
 
@@ -91,7 +86,7 @@ class Message:
 
         self.send_message(datetime(year, month, day, hour, minute, 0, 0, tzinfo1).strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo1)
         delta = datetime(year, month, day, hour, minute, 0, 0, tzinfo1) - time_utc
-        self.send_message("Delta is: " + str(delta))
+        # DEBUG self.send_message("Delta is: " + str(delta))
 
         tzinfo_london = pytz.timezone('Europe/London')
         time_utc = datetime.now(tzinfo_london) + delta
@@ -182,7 +177,8 @@ while 1:  # infinite loop
             Message(args.channel).give_time(input_string)
         except:
             Message(args.channel).send_message("Usage: !time <time_zones>")
-            Message(args.channel).send_message("Valid time zones here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
+            Message(args.channel).send_message("Purpose: Give the time in the specified time zone")
+            Message(args.channel).send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
 
     # tracks "!meet <Continent/City> <HH:MM>"
     if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
@@ -190,4 +186,6 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!meet\s", 3)
             Message(args.channel).give_hour_equivalence(input_string)
         except:
-            Message(args.channel).send_message("Usage: !meet <Continent/City> <HH:MM>")
+            Message(args.channel).send_message("Usage: !meet utc <HH:MM>")
+            Message(args.channel).send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
+            Message(args.channel).send_message("Tip: Only utc time zone works at this moment")
