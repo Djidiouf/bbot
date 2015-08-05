@@ -13,10 +13,48 @@ import socket
 # Import argument library
 import argparse
 
+# Import for displaying date and time
 from datetime import datetime
+# Import for timezone information
+import pytz
+
+# Import for REGEX compiler
+import re
+
 
 # functions ---------------------------------------------------------------------
 # functions that will do the handling of the servers's data
+
+
+class Message:
+    def __init__(self, channel):
+        self.channel = channel
+
+    def send_message(self, msg):
+        ircsock.send(bytes("PRIVMSG %s :" % self.channel + msg + "\r\n", "UTF-8"))
+
+    def hello(self):
+        self.send_message("Hello!")
+
+    def give_time(self, tz):  # Responds to a user that inputs "!time Continent/City"
+        # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+        if tz == 'bchat':
+            tz = 'Europe/London'
+            tzinfo = pytz.timezone(tz)
+            time_utc = datetime.now(tzinfo)
+            self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
+            tz = 'Europe/Stockholm'
+            tzinfo = pytz.timezone(tz)
+            time_utc = datetime.now(tzinfo)
+            self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
+            tz = 'Australia/Sydney'
+            tzinfo = pytz.timezone(tz)
+            time_utc = datetime.now(tzinfo)
+            self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
+        else:
+            tzinfo = pytz.timezone(tz)
+            time_utc = datetime.now(tzinfo)
+            self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
 
 
 def ping():  # Respond to server pings
@@ -27,12 +65,27 @@ def join_chan(chan):  # Join channel
     ircsock.send(bytes("JOIN %s\r\n" % chan, "UTF-8"))
 
 
-def hello():  # Responds to a user that inputs "Hello <botname>"
-    ircsock.send(bytes("PRIVMSG %s :Hello \r\n" % args.channel, "UTF-8"))
+def regex_coder(message, expression, convention):
+    p = re.compile(expression)  # Compile Regular Expression
+    decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
+    string_search = p.search(decoded_ircmsg)  # search the string for RE
 
+    if convention == 1:  # search for \r\n
+        if string_search:
+            msg_decoded = decoded_ircmsg[:string_search.start()]
+            coded = bytes(msg_decoded, 'utf-8')
+            return coded
+    elif convention == 2:
+        if string_search:
+            msg_decoded = string_search.group()
+            return msg_decoded
+    elif convention == 3:  # Get Last word
+        if string_search:
+            msg_decoded = decoded_ircmsg[string_search.end():]
+            return msg_decoded
+    else:
+        print("convention not found")
 
-def give_time():  # Responds to a user that inputs "Hello <botname>"
-    ircsock.send(bytes("PRIVMSG %s :Time is " % args.channel + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\r\n", "UTF-8"))
 
 # arguments ---------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='bbot, a bot without limits')
@@ -70,8 +123,14 @@ while 1:  # infinite loop
 
     # tracks "Hello <botname> <any message>"
     if ircmsg.find(bytes(":Hello %s" % args.botnick, "UTF-8")) != -1:
-        hello()
+        Message(args.channel).hello()
 
-    # tracks "Hello <botname> <any message>"
+    # tracks "!time <Continent/City>"
     if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
-        give_time()
+        try:
+            # time_zone = 'Australia/Sydney'
+            time_zone = regex_coder(ircmsg, ":!time\s", 3)
+            Message(args.channel).give_time(time_zone)
+        except:
+            Message(args.channel).send_message("Usage: !time <time_zones>")
+            Message(args.channel).send_message("Valid time zones here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
