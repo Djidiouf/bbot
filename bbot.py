@@ -30,14 +30,25 @@ class Message:
     def __init__(self, channel):
         self.channel = channel
 
+    # formatting needed for every message
     def send_message(self, msg):
         ircsock.send(bytes("PRIVMSG %s :" % self.channel + msg + "\r\n", "UTF-8"))
 
     def hello(self):
         self.send_message("Hello!")
 
-    def give_time(self, tz):  # Responds to a user that inputs "!time Continent/City"
+    def give_time(self, tz_string):  # Responds to a user that inputs "!time Continent/City"
         # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+        # divide the string in a tuple: 'str1', 'separator', 'str2'
+        # tuple_string = tz_string.partition(':')
+        # tz = tuple_string[0]
+        # delta = tuple_string[2]
+        # if delta:
+        #     delta = int(delta)
+
+        tz = tz_string
+
         if tz == 'bchat':
             tz = 'Europe/London'
             tzinfo = pytz.timezone(tz)
@@ -55,6 +66,44 @@ class Message:
             tzinfo = pytz.timezone(tz)
             time_utc = datetime.now(tzinfo)
             self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
+
+    def give_hour_equivalence(self, string):  # Responds to an input as "!meet <Continent/City> <HH:MM>"
+        # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+        # /!\ currently only "utc" is working
+
+        # divide the string in a tuple: 'str1', 'separator', 'str2'
+        tuple_string = string.partition(' ')
+        tz = tuple_string[0]
+        time_string = tuple_string[2]
+
+        tuple_time = time_string.partition(':')
+        simple_hour = tuple_time[0]
+        simple_minute = tuple_time[2]
+
+        hour = int(simple_hour)
+        minute = int(simple_minute)
+
+        tzinfo1 = pytz.timezone(tz)
+        time_utc = datetime.now(tzinfo1)
+        year = datetime.now(tzinfo1).year
+        month = datetime.now(tzinfo1).month
+        day = datetime.now(tzinfo1).day
+
+        self.send_message(datetime(year, month, day, hour, minute, 0, 0, tzinfo1).strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo1)
+        delta = datetime(year, month, day, hour, minute, 0, 0, tzinfo1) - time_utc
+        self.send_message("Delta is: " + str(delta))
+
+        tzinfo_london = pytz.timezone('Europe/London')
+        time_utc = datetime.now(tzinfo_london) + delta
+        self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_london)
+
+        tzinfo_stockholm = pytz.timezone('Europe/Stockholm')
+        time_utc = datetime.now(tzinfo_stockholm) + delta
+        self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_stockholm)
+
+        tzinfo_sydney = pytz.timezone('Australia/Sydney')
+        time_utc = datetime.now(tzinfo_sydney) + delta
+        self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_sydney)
 
 
 def ping():  # Respond to server pings
@@ -129,8 +178,16 @@ while 1:  # infinite loop
     if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
         try:
             # time_zone = 'Australia/Sydney'
-            time_zone = regex_coder(ircmsg, ":!time\s", 3)
-            Message(args.channel).give_time(time_zone)
+            input_string = regex_coder(ircmsg, ":!time\s", 3)
+            Message(args.channel).give_time(input_string)
         except:
             Message(args.channel).send_message("Usage: !time <time_zones>")
             Message(args.channel).send_message("Valid time zones here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
+
+    # tracks "!meet <Continent/City> <HH:MM>"
+    if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
+        try:
+            input_string = regex_coder(ircmsg, ":!meet\s", 3)
+            Message(args.channel).give_hour_equivalence(input_string)
+        except:
+            Message(args.channel).send_message("Usage: !meet <Continent/City> <HH:MM>")
