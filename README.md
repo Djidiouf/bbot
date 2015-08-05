@@ -27,6 +27,28 @@ Example
 python bbot.py -s irc.freenode.net  -c "##rimbatou" -b bbot
 ```
 
+### Features
+
+Hello <bbot>
+```
+Someone: Hello <bbot>
+TheBot : Hello!
+```
+
+!time <time_zone> - Give time of timezone in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+```
+Someone: !time Australia/Sydney
+TheBot : 2015-08-05 - 10:28:04 - AEST+1000 - Australia/Sydney
+```
+
+!time bchat - Special command that you can change in order to give you specific timezones at once
+```
+Someone: !time bchat
+TheBot : 2015-08-05 - 01:28:25 - BST+0100 - Europe/London
+TheBot : 2015-08-05 - 02:28:25 - CEST+0200 - Europe/Stockholm
+TheBot : 2015-08-05 - 10:28:25 - AEST+1000 - Australia/Sydney
+```
+
 ### Version
 0.1
 
