@@ -49,6 +49,22 @@ TheBot : 2015-08-05 - 02:28:25 - CEST+0200 - Europe/Stockholm
 TheBot : 2015-08-05 - 10:28:25 - AEST+1000 - Australia/Sydney
 ```
 
+!meet utc <HH:MM> - Allow to see the specified UTC time given in specific timezones
+```
+Someone: !meet utc 10:00
+TheBot : 2015-08-06 - 10:00:00 - UTC+0000 - UTC
+TheBot : 2015-08-06 - 11:00:00 - BST+0100 - Europe/London
+TheBot : 2015-08-06 - 12:00:00 - CEST+0200 - Europe/Stockholm
+TheBot : 2015-08-06 - 20:00:00 - AEST+1000 - Australia/Sydney
+```
+
+!money <amount> <CODE1>:<CODE2> - Convert an amount from one currency to another
+```
+Someone: !money 15.5 EUR:AUD
+TheBot : Rate: 1 EUR = 1.4894 AUD
+TheBot : 15.50 EUR = 23.09 AUD
+```
+
 ### Version
 0.1
 
