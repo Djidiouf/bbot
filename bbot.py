@@ -21,6 +21,12 @@ import pytz
 # Import for REGEX compiler
 import re
 
+# Import for money rate request on website
+from urllib import request
+
+# anti flood if needed: time.sleep(2)
+import time
+
 
 # functions ---------------------------------------------------------------------
 # functions that will do the handling of the servers's data
@@ -60,12 +66,12 @@ class Message:
             time_utc = datetime.now(tzinfo)
             self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
 
-    def give_hour_equivalence(self, string):  # Responds to an input as "!meet <Continent/City> <HH:MM>"
+    def give_hour_equivalence(self, i_string):  # Responds to an input as "!meet <Continent/City> <HH:MM>"
         # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
         # /!\ currently only "utc" is working
 
         # divide a string in a tuple: 'str1', 'separator', 'str2'
-        tuple_string = string.partition(' ')
+        tuple_string = i_string.partition(' ')
         tz = tuple_string[0]
         time_string = tuple_string[2]
 
@@ -99,6 +105,41 @@ class Message:
         tzinfo_sydney = pytz.timezone('Australia/Sydney')
         time_utc = datetime.now(tzinfo_sydney) + delta
         self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_sydney)
+
+    def money_rate(self, i_string):  # Responds to a user that inputs "!money <number> <CODE1> <CODE2>"
+        # https://www.google.com/finance/converter
+
+        # divide a string in a tuple: 'str1', 'separator', 'str2'
+        tuple_string = i_string.partition(' ')
+        amount = tuple_string[0]
+        codes = tuple_string[2]
+
+        # amount needs to be int and not string
+        amount = float(amount)
+
+        # divide a string in a tuple: 'str1', 'separator', 'str2'
+        tuple_time = codes.partition(':')
+        code1 = tuple_time[0]
+        code2 = tuple_time[2]
+
+        url = 'https://www.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
+
+        # Define where the results could be find and convert the split separator in byte.
+        # Can't be simplified as a variable can't be called through bytes
+        separator1 = '</div>\n&nbsp;\n<div id=currency_converter_result>1 %s = <span class=bld>' % code1  # Google
+        separator1 = str.encode(separator1)  # Convert it in a byte type
+
+        separator2 = ' %s</span>' % code2  # Google
+        separator2 = str.encode(separator2)  # Convert it in a byte type
+
+        webpage = request.urlopen(url)
+
+        rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
+        self.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
+
+        total = amount * rate
+        self.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
+        webpage.close()
 
 
 def ping():  # Respond to server pings
@@ -189,3 +230,13 @@ while 1:  # infinite loop
             Message(args.channel).send_message("Usage: !meet utc <HH:MM>")
             Message(args.channel).send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
             Message(args.channel).send_message("Tip: Only utc time zone works at this moment")
+
+    # tracks "!money <number> <CODE1> <CODE2>"
+    if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
+        try:
+            input_string = regex_coder(ircmsg, ":!money\s", 3)
+            Message(args.channel).money_rate(input_string)
+        except:
+            Message(args.channel).send_message("Usage: !money <number> <CODE1> <CODE2>")
+            Message(args.channel).send_message("Purpose: Convert an amount from one currency to another")
+            Message(args.channel).send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217")
