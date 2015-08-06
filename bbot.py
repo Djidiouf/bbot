@@ -106,7 +106,7 @@ class Message:
         time_utc = datetime.now(tzinfo_sydney) + delta
         self.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_sydney)
 
-    def money_rate(self, i_string):  # Responds to a user that inputs "!money <number> <CODE1> <CODE2>"
+    def money_rate(self, i_string):  # Responds to a user that inputs "!money <number> <CODE1>:<CODE2>"
         # https://www.google.com/finance/converter
 
         # divide a string in a tuple: 'str1', 'separator', 'str2'
@@ -119,8 +119,8 @@ class Message:
 
         # divide a string in a tuple: 'str1', 'separator', 'str2'
         tuple_time = codes.partition(':')
-        code1 = tuple_time[0]
-        code2 = tuple_time[2]
+        code1 = tuple_time[0].upper()
+        code2 = tuple_time[2].upper()
 
         url = 'https://www.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
 
@@ -140,6 +140,9 @@ class Message:
         total = amount * rate
         self.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
         webpage.close()
+
+    def say(self, i_input):  # Responds to an input as "!say <something>"
+        self.send_message(i_input)
 
 
 def ping():  # Respond to server pings
@@ -231,12 +234,20 @@ while 1:  # infinite loop
             Message(args.channel).send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
             Message(args.channel).send_message("Tip: Only utc time zone works at this moment")
 
-    # tracks "!money <number> <CODE1> <CODE2>"
+    # tracks "!money <number> <CODE1>:<CODE2>"
     if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!money\s", 3)
             Message(args.channel).money_rate(input_string)
         except:
-            Message(args.channel).send_message("Usage: !money <number> <CODE1> <CODE2>")
+            Message(args.channel).send_message("Usage: !money <number> <CODE1>:<CODE2>")
             Message(args.channel).send_message("Purpose: Convert an amount from one currency to another")
             Message(args.channel).send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217")
+
+    # tracks "!say <something>"
+    if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
+        try:
+            input_string = regex_coder(ircmsg, ":!say\s", 3)
+            Message(args.channel).say(input_string)
+        except:
+            Message(args.channel).send_message("Usage: !say <something>")
