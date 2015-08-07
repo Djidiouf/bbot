@@ -24,6 +24,9 @@ import re
 # Import for money rate request on website
 from urllib import request
 
+# Library for being able to read Json file
+import json
+
 # anti flood if needed: time.sleep(2)
 import time
 
@@ -144,6 +147,47 @@ class Message:
     def say(self, i_input):  # Responds to an input as "!say <something>"
         self.send_message(i_input)
 
+    def steam_price(self, i_string):  # Responds to a user that inputs "!steamprice <GAME>"
+        # using Steam API: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
+        # using Steam API: http://store.steampowered.com/api/appdetails?appids=392400&cc=fr
+
+        # nameguess = 'INK - Soundtrack + Art'  # DEBUG
+        nameguess= i_string
+
+        url_appsid = request.urlopen('http://api.steampowered.com/ISteamApps/GetAppList/v0001/').read().decode('utf-8')
+        # url_appsid = request.urlopen('http://lib.openlog.it/steamapi.json').read().decode('utf-8')  # DEBUG
+        url_appsid = json.loads(url_appsid)
+
+        for line in url_appsid['applist']['apps']['app']:
+            # print(line)  # DEBUG
+            if line['name'] == nameguess:
+                self.send_message("AppID is: %s" % line['appid'])  # DEBUG
+                appid_guess = line['appid']
+                appid_guess = str(appid_guess)
+
+                webpage = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=fr' % appid_guess
+                # print(webpage)  # DEBUG
+                url_price = request.urlopen(webpage).read().decode('utf-8')
+                url_price = json.loads(url_price)
+
+                # Retrieve each field of the price overview dictionary
+                # print(url_price[appid_guess]["data"]["price_overview"])  # complete price overview
+                price_initial = url_price[appid_guess]["data"]["price_overview"]['initial']
+                price_discount = url_price[appid_guess]["data"]["price_overview"]['discount_percent']
+                price_final = url_price[appid_guess]["data"]["price_overview"]['final']
+                price_currency = url_price[appid_guess]["data"]["price_overview"]['currency']
+
+                # Change the type of several field
+                price_initial = float(price_initial)
+                price_initial = price_initial * 0.01
+                price_discount = int(price_discount)
+                price_final = float(price_final)
+                price_final = price_final * 0.01
+
+                # Display the result: <Game> is at 9.00 EUR (from: 10.00 EUR, discount 10%)
+                self.send_message("%s is at %.2f %s " % (nameguess, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+
+
 
 def ping():  # Respond to server pings
     ircsock.send(bytes("PONG :Pong\n", "UTF-8"))
@@ -251,3 +295,13 @@ while 1:  # infinite loop
             Message(args.channel).say(input_string)
         except:
             Message(args.channel).send_message("Usage: !say <something>")
+
+        # tracks "!steamprice <GAME>"
+    if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
+        try:
+            input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
+            Message(args.channel).steam_price(input_string)
+        except:
+            Message(args.channel).send_message("Usage: !steamprice <GAME>")
+            Message(args.channel).send_message("Purpose: Give the price of the given Steam game")
+            Message(args.channel).send_message("Tip: Title must be exact")
