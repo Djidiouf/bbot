@@ -4,3 +4,6 @@
 
 ## Directory-based project format:
 .idea/
+
+## Cache directory
+cache-steam/
