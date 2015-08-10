@@ -165,8 +165,8 @@ class Message:
 
         if nameguess == "@rm-cache":
             shutil.rmtree(cache_steam_dir)
-            print("cache deleted")
-            quit()  # Use ** return ** if in a function
+            self.send_message("Cache has been deleted")
+            return  # Use ** return ** if in a function, exit() otherwise
 
         # Method ONLINE: URL only, no cache ----------------------
         # url_steam_appsid = request.urlopen('http://api.steampowered.com/ISteamApps/GetAppList/v0001/').read().decode('utf-8')
