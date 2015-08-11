@@ -8,11 +8,10 @@
 # Licence:      bchat-licence
 # -------------------------------------------------------------------------------
 
-# Python Imports
+# Python built-in modules
 import socket  # Port listener
 import argparse  # Add the possibility to have command line arguments
 from datetime import datetime  # displaying date and time
-import pytz  # timezone information
 import re  # REGEX compiler
 import urllib.request  # Open url request on website
 import json  # Library for being able to read Json file
@@ -20,8 +19,11 @@ import time  # anti flood if needed: time.sleep(2)
 import os       # For instruction related to the OS
 import shutil   # Used for OS tools
 
-# bbot modules
-# from modules.steam import steam_price
+# Third-party modules
+import pytz  # timezone information
+
+# Project modules
+# import modules.steam  # Contains specific Steam-Valve related functions
 
 # functions ---------------------------------------------------------------------
 # functions that will do the handling of the servers's data
@@ -322,7 +324,7 @@ ircsock.send(bytes("USER %s %s %s :%s\r\n" % (args.botnick, args.botnick, args.b
 # Assignment of a nick to the bot
 ircsock.send(bytes("NICK %s\r\n" % args.botnick, "UTF-8"))
 
-# After connection, oin the specified channel
+# After connection, join the specified channel
 join_chan(args.channel)
 
 
