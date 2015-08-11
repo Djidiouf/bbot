@@ -73,6 +73,7 @@ TheBot : PAYDAY: The Heist
 TheBot : PAYDAY The Heist Mercy Hospital Trailer
 TheBot : PAYDAY: The Heist - Wolfpack Weapons
 ```
+
 ```
 Someone: !steamprice Cities:Skylines
 TheBot : Cities: Skylines is at 27.99 EUR (from: 27.99 EUR , discount: 0%)
