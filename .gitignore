@@ -7,3 +7,6 @@
 
 ## Cache directory
 cache-steam/
+
+## Config file
+config.py
