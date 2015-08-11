@@ -11,19 +11,13 @@ Download bbot by clicking on [Download ZIP](https://github.com/Djidiouf/bbot/arc
 Extract the bbot folder on your desktop and open a command line terminal (Windows: shift + right click on your desktop and do 'Open command window here').
 
     $ cd bbot
-    $ python bbot.py -s <SERVER>  -c <CHANNEL> -b <BOTNICKNAME>
+    $ python bbot.py
 
+Rename the config_example.py to config.py and change these 3 variables:
 
-Example
-
-    python bbot.py -s irc.freenode.net  -c ##rimbatou -b bbot
-
-The channel name can be put between quotes if needed.
-
-Example
-
-    python bbot.py -s irc.freenode.net  -c "##rimbatou" -b bbot
-
+    server = 'your.irc.server.com'
+    channel = '##your_channel'
+    botnick = 'bbot'
 
 ### Features
 
@@ -78,7 +72,7 @@ Example
 
     Someone: !steamprice Cities:Skylines
     TheBot : Cities: Skylines is at 27.99 EUR (from: 27.99 EUR , discount: 0%)
-    TheBot : About: Cities: Skylines is a modern take on the classic city simulation. The game introduces new game play elements to realize the thrill and hardships of cr [...]
+    TheBot : About: Cities: Skylines is a modern take on the classic city simulation. [...]
     TheBot : Metacritic: 86
     TheBot : SteamStore: http://store.steampowered.com/app/255710?cc=fr
 
