@@ -65,6 +65,22 @@ TheBot : Rate: 1 EUR = 1.4894 AUD
 TheBot : 15.50 EUR = 23.09 AUD
 ```
 
+!steamprice <Title> - Retrieve data info about a specific Title. If an exact match hasn't been found, 3 potential results will be displayed.
+```
+Someone: !steamprice PAYDAY
+TheBot : Exact title not found, you can try:
+TheBot : PAYDAY: The Heist
+TheBot : PAYDAY The Heist Mercy Hospital Trailer
+TheBot : PAYDAY: The Heist - Wolfpack Weapons
+```
+```
+Someone: !steamprice Cities:Skylines
+TheBot : Cities: Skylines is at 27.99 EUR (from: 27.99 EUR , discount: 0%)
+TheBot : About: Cities: Skylines is a modern take on the classic city simulation. The game introduces new game play elements to realize the thrill and hardships of cr [...]
+TheBot : Metacritic: 86
+TheBot : SteamStore: http://store.steampowered.com/app/255710?cc=fr
+```
+
 ### Version
 0.1
 
@@ -75,7 +91,6 @@ bbot is made in:
 
 ### Development
 Want to contribute? Great! But don't do it now, wait for the Release.
-
 
 ### Todo's
 * more features
