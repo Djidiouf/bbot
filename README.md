@@ -92,7 +92,6 @@ bbot is made in:
 ### Development
 Want to contribute? Great! But don't do it now, wait for the Release.
 
-
 ### Todo's
 * more features
 * other things

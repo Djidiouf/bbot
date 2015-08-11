@@ -251,7 +251,12 @@ class Message:
 
                 if "about_the_game" in steam_appsmeta[appid_guess]["data"]:
                     price_about_the_game = steam_appsmeta[appid_guess]["data"]["about_the_game"]
-                    price_about_the_game = re.sub("<br />", "", price_about_the_game)  # If there is "<br />", a substitute must be done
+
+                    # Substitute with nothing some html
+                    price_about_the_game = re.sub("<br />", "", price_about_the_game)
+                    price_about_the_game = re.sub("<strong>", "", price_about_the_game)
+                    price_about_the_game = re.sub("</strong>", "", price_about_the_game)
+
                     self.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
 
                 if "metacritic" in steam_appsmeta[appid_guess]["data"]:
