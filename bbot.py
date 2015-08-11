@@ -25,6 +25,9 @@ import pytz  # timezone information
 # Project modules
 # import modules.steam  # Contains specific Steam-Valve related functions
 
+# Project config
+import config  # Parsed variables from command line
+
 # functions ---------------------------------------------------------------------
 # functions that will do the handling of the servers's data
 
@@ -317,20 +320,25 @@ parser.add_argument("-c", "--channel", help="Channel name", required=True)
 parser.add_argument("-b", "--botnick", help="bbot nickname", required=True)
 args = parser.parse_args()
 
+# Creation of a config file
+with open('config.py', 'w') as f:
+    f.write("server = '%s'\n" % args.server)
+    f.write("channel = '%s'\n" % args.channel)
+    f.write("botnick = '%s'\n" % args.botnick)
 
 # connection --------------------------------------------------------------------
 # connect and join the configured channel
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ircsock.connect((args.server, 6667))  # Connect to port 6667
+ircsock.connect((config.server, 6667))  # Connect to port 6667
 
 # Sends the username, real name etc : user authentication
-ircsock.send(bytes("USER %s %s %s :%s\r\n" % (args.botnick, args.botnick, args.botnick, args.botnick), "UTF-8"))
+ircsock.send(bytes("USER %s %s %s :%s\r\n" % (config.botnick, config.botnick, config.botnick, config.botnick), "UTF-8"))
 
 # Assignment of a nick to the bot
-ircsock.send(bytes("NICK %s\r\n" % args.botnick, "UTF-8"))
+ircsock.send(bytes("NICK %s\r\n" % config.botnick, "UTF-8"))
 
 # After connection, join the specified channel
-join_chan(args.channel)
+join_chan(config.channel)
 
 
 # data reception ---------------------------------------------------------------
@@ -345,54 +353,54 @@ while 1:  # infinite loop
         ping()
 
     # tracks "Hello <botname> <any message>"
-    if ircmsg.find(bytes(":Hello %s" % args.botnick, "UTF-8")) != -1:
-        Message(args.channel).hello()
+    if ircmsg.find(bytes(":Hello %s" % config.botnick, "UTF-8")) != -1:
+        Message(config.channel).hello()
 
     # tracks "!time <Continent/City>"
     if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
         try:
             # time_zone = 'Australia/Sydney'
             input_string = regex_coder(ircmsg, ":!time\s", 3)
-            Message(args.channel).give_time(input_string)
+            Message(config.channel).give_time(input_string)
         except:
-            Message(args.channel).send_message("Usage: !time <time_zones>")
-            Message(args.channel).send_message("Purpose: Give the time in the specified time zone")
-            Message(args.channel).send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
+            Message(config.channel).send_message("Usage: !time <time_zones>")
+            Message(config.channel).send_message("Purpose: Give the time in the specified time zone")
+            Message(config.channel).send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
 
     # tracks "!meet <Continent/City> <HH:MM>"
     if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!meet\s", 3)
-            Message(args.channel).give_hour_equivalence(input_string)
+            Message(config.channel).give_hour_equivalence(input_string)
         except:
-            Message(args.channel).send_message("Usage: !meet utc <HH:MM>")
-            Message(args.channel).send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
-            Message(args.channel).send_message("Tip: Only utc time zone works at this moment")
+            Message(config.channel).send_message("Usage: !meet utc <HH:MM>")
+            Message(config.channel).send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
+            Message(config.channel).send_message("Tip: Only utc time zone works at this moment")
 
     # tracks "!money <number> <CODE1>:<CODE2>"
     if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!money\s", 3)
-            Message(args.channel).money_rate(input_string)
+            Message(config.channel).money_rate(input_string)
         except:
-            Message(args.channel).send_message("Usage: !money <number> <CODE1>:<CODE2>")
-            Message(args.channel).send_message("Purpose: Convert an amount from one currency to another")
-            Message(args.channel).send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217")
+            Message(config.channel).send_message("Usage: !money <number> <CODE1>:<CODE2>")
+            Message(config.channel).send_message("Purpose: Convert an amount from one currency to another")
+            Message(config.channel).send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217")
 
     # tracks "!say <something>"
     if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!say\s", 3)
-            Message(args.channel).say(input_string)
+            Message(config.channel).say(input_string)
         except:
-            Message(args.channel).send_message("Usage: !say <something>")
+            Message(config.channel).send_message("Usage: !say <something>")
 
         # tracks "!steamprice <Game Title>"
     if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
-            Message(args.channel).steam_price(input_string)
+            Message(config.channel).steam_price(input_string)
         except:
-            Message(args.channel).send_message("Usage: !steamprice <Game Title>")
-            Message(args.channel).send_message("Purpose: Give the price of the given Steam game")
-            Message(args.channel).send_message("Tip: Title must be exact")
+            Message(config.channel).send_message("Usage: !steamprice <Game Title>")
+            Message(config.channel).send_message("Purpose: Give the price of the given Steam game")
+            Message(config.channel).send_message("Tip: Title must be exact")
