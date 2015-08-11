@@ -29,12 +29,13 @@ python bbot.py -s irc.freenode.net  -c "##rimbatou" -b bbot
 
 ### Features
 
-Hello <bbot>
+#### Hello <bbot>
 ```
 Someone: Hello <bbot>
 TheBot : Hello!
 ```
 
+#### !time
 !time <time_zone> - Give time of timezone in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 ```
 Someone: !time Australia/Sydney
@@ -49,6 +50,7 @@ TheBot : 2015-08-05 - 02:28:25 - CEST+0200 - Europe/Stockholm
 TheBot : 2015-08-05 - 10:28:25 - AEST+1000 - Australia/Sydney
 ```
 
+#### !meet
 !meet utc <HH:MM> - Allow to see the specified UTC time given in specific timezones
 ```
 Someone: !meet utc 10:00
@@ -58,6 +60,7 @@ TheBot : 2015-08-06 - 12:00:00 - CEST+0200 - Europe/Stockholm
 TheBot : 2015-08-06 - 20:00:00 - AEST+1000 - Australia/Sydney
 ```
 
+#### !money
 !money <amount> <CODE1>:<CODE2> - Convert an amount from one currency to another
 ```
 Someone: !money 15.5 EUR:AUD
@@ -65,21 +68,23 @@ TheBot : Rate: 1 EUR = 1.4894 AUD
 TheBot : 15.50 EUR = 23.09 AUD
 ```
 
-!steamprice <Title> - Retrieve data info about a specific Title. If an exact match hasn't been found, 3 potential results will be displayed.
-```
-Someone: !steamprice PAYDAY
-TheBot : Exact title not found, you can try:
-TheBot : PAYDAY: The Heist
-TheBot : PAYDAY The Heist Mercy Hospital Trailer
-TheBot : PAYDAY: The Heist - Wolfpack Weapons
-```
-
+#### !steamprice
+!steamprice <Title> - Retrieve data info about a specific Title.
 ```
 Someone: !steamprice Cities:Skylines
 TheBot : Cities: Skylines is at 27.99 EUR (from: 27.99 EUR , discount: 0%)
 TheBot : About: Cities: Skylines is a modern take on the classic city simulation. The game introduces new game play elements to realize the thrill and hardships of cr [...]
 TheBot : Metacritic: 86
 TheBot : SteamStore: http://store.steampowered.com/app/255710?cc=fr
+```
+
+!steamprice <Title> - If an exact match hasn't been found, 3 potential results will be displayed.
+```
+Someone: !steamprice PAYDAY
+TheBot : Exact title not found, you can try:
+TheBot : PAYDAY: The Heist
+TheBot : PAYDAY The Heist Mercy Hospital Trailer
+TheBot : PAYDAY: The Heist - Wolfpack Weapons
 ```
 
 ### Version
