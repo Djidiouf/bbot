@@ -10,6 +10,14 @@
 
 # Python built-in modules
 # import argparse  # Add the possibility to have command line arguments
+# # # arguments ---------------------------------------------------------------------
+# # -s <server>  -c "<channel>" -b <bot nickname>
+# parser = argparse.ArgumentParser(description='bbot, a bot without limits')
+# parser.add_argument("-s", "--server", help="Server name", required=True)
+# parser.add_argument("-c", "--channel", help="Channel name", required=True)
+# parser.add_argument("-b", "--botnick", help="bbot nickname", required=True)
+# args = parser.parse_args()
+import configparser
 import re  # REGEX compiler
 
 # Project modules
@@ -20,25 +28,21 @@ import modules.speak
 import modules.connection
 
 
-# # arguments ---------------------------------------------------------------------
-# -s <server>  -c "<channel>" -b <bot nickname>
-# parser = argparse.ArgumentParser(description='bbot, a bot without limits')
-# parser.add_argument("-s", "--server", help="Server name", required=True)
-# parser.add_argument("-c", "--channel", help="Channel name", required=True)
-# parser.add_argument("-b", "--botnick", help="bbot nickname", required=True)
-# args = parser.parse_args()
-#
-# # Creation of a config file
-# with open('config.py', 'w+') as f:
-#     f.write("import socket\n")
-#     f.write("ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n")
-#     f.write("server = '%s'\n" % args.server)
-#     f.write("channel = '%s'\n" % args.channel)
-#     f.write("botnick = '%s'\n" % args.botnick)
+# conf = configparser.RawConfigParser()
+# conf.add_section('bot_configuration')
+# conf.set('bot_configuration', 'server', args.server)
+# conf.set('bot_configuration', 'channel', args.channel)
+# conf.set('bot_configuration', 'botnick', args.botnick)
 
-# Project config
-import config  # Parsed variables from command line
+# # Writing our configuration file to 'example.cfg'
+# with open('config.cfg', 'w') as configfile:
+#     conf.write(configfile)
 
+conf = configparser.RawConfigParser()
+conf.read('config.cfg')
+server = conf.get('bot_configuration', 'server')
+channel = conf.get('bot_configuration', 'channel')
+botnick = conf.get('bot_configuration', 'botnick')
 
 def regex_coder(message, expression, convention):
     p = re.compile(expression)  # Compile Regular Expression
@@ -63,7 +67,7 @@ def regex_coder(message, expression, convention):
 
 
 # connect and join the configured channel
-modules.connection.join_chan(config.channel)
+modules.connection.join_chan(channel)
 
 # data reception ---------------------------------------------------------------
 # Receive all the data from the server & channel
@@ -77,7 +81,7 @@ while 1:  # infinite loop
         modules.connection.ping()
 
     # tracks "Hello <botname> <any message>"
-    if ircmsg.find(bytes(":Hello %s" % config.botnick, "UTF-8")) != -1:
+    if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1:
         modules.speak.hello()
 
     # tracks "!time <Continent/City>"
