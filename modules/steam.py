@@ -2,7 +2,6 @@ __author__ = 'Djidiouf'
 
 # Python built-in modules
 import urllib.request  # Open url request on website
-import re  # REGEX compiler
 import urllib.request  # Open url request on website
 import json  # Library for being able to read Json file
 import time  # anti flood if needed: time.sleep(2)
@@ -11,6 +10,7 @@ import shutil   # Used for OS tools
 
 # Project modules
 import modules.messages
+import modules.textalteration
 import config
 
 
@@ -122,9 +122,8 @@ def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game 
                 price_about_the_game = steam_appsmeta[appid_guess]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
-                price_about_the_game = re.sub("<br />", "", price_about_the_game)
-                price_about_the_game = re.sub("<strong>", "", price_about_the_game)
-                price_about_the_game = re.sub("</strong>", "", price_about_the_game)
+                html_elements = ["<p>", "<br />", "<strong>", "</strong>"]
+                price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.messages.Message(config.channel).send_message("About: %s" % price_about_the_game[0:130] + " [...]")
 
