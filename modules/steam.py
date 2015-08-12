@@ -25,7 +25,7 @@ def steam_price(i_string):
     """
 
     # Main variables
-    nameguess = i_string
+    nameguess = i_string.lower()
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
@@ -68,16 +68,16 @@ def steam_price(i_string):
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
-
-        if line['name'] == nameguess:
+        if line['name'].lower() == nameguess:
             title_found = True
             title_spelling = False  # Need to set to False in case an approximative match had been made previously
 
             appid_guess = line['appid']
             appid_guess = str(appid_guess)
+            nameguess = line['name']  # Ensure that the correct case is displayed in the future
             break  # As an exact match has been found, there is no need to go further
 
-        if line['name'].startswith(nameguess):
+        if line['name'].lower().startswith(nameguess):
             title_spelling = True  # Found at least one approximative match
             results.append(line['name'])  # Add each match to a list
 

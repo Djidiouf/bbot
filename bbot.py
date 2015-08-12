@@ -18,6 +18,7 @@ import modules.steam  # Contains specific Steam-Valve related functions
 import modules.messages
 import modules.money
 import modules.time
+import modules.speak
 
 
 # # arguments ---------------------------------------------------------------------
@@ -101,7 +102,7 @@ while 1:  # infinite loop
 
     # tracks "Hello <botname> <any message>"
     if ircmsg.find(bytes(":Hello %s" % config.botnick, "UTF-8")) != -1:
-        modules.messages.Message(config.channel).hello()
+        modules.speak.hello()
 
     # tracks "!time <Continent/City>"
     if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
@@ -138,7 +139,7 @@ while 1:  # infinite loop
     if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!say\s", 3)
-            modules.messages.Message(config.channel).say(input_string)
+            modules.speak.say(input_string)
         except:
             modules.messages.Message(config.channel).send_message("Usage: !say <something>")
 
