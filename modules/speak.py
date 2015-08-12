@@ -1,8 +1,7 @@
 __author__ = 'Djidiouf'
 
 # Project modules
-import modules.messages
-import config
+import modules.connection
 
 
 def hello():
@@ -10,7 +9,7 @@ def hello():
     Say hello to people when they say Hello <bbot>
     :return:
     """
-    modules.messages.Message(config.channel).send_message("Hello!")
+    modules.connection.send_message("Hello!")
 
 def say(i_input):
     """
@@ -18,4 +17,4 @@ def say(i_input):
     :param i_input: whatever people want the bot to say
     :return:
     """
-    modules.messages.Message(config.channel).send_message(i_input)
+    modules.connection.send_message(i_input)
