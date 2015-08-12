@@ -14,9 +14,15 @@ import modules.textalteration
 import config
 
 
-def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game Title>"
-    # using Steam API: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
-    # using Steam API: http://store.steampowered.com/api/appdetails?appids=392400&cc=fr
+def steam_price(i_string):
+    """
+    Responds to a user that inputs "!steamprice <Game Title>"
+    using Steam API: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
+    using Steam API: http://store.steampowered.com/api/appdetails?appids=392400&cc=fr
+
+    :param i_string: a string with these elements: "<Game Title>"
+    :print: parsed answer about Steam title from the API
+    """
 
     # Main variables
     nameguess = i_string

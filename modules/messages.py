@@ -8,12 +8,23 @@ class Message:
     def __init__(self, channel):
         self.channel = channel
 
-    # formatting needed for every message
     def send_message(self, msg):
+        """
+        Transform a message in input into an encoded message send through IRC socket
+
+        :param msg: string needed to be encoded and sent on IRC
+        :return:
+        """
         config.ircsock.send(bytes("PRIVMSG %s :" % self.channel + msg + "\r\n", "UTF-8"))
 
     def hello(self):
         self.send_message("Hello!")
 
-    def say(self, i_input):  # Responds to an input as "!say <something>"
+    def say(self, i_input):
+        """
+        Responds to an input as "!say <something>"
+        
+        :param i_input: whatever people want the bot to say
+        :return:
+        """
         self.send_message(i_input)

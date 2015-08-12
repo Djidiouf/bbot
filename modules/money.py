@@ -8,8 +8,14 @@ import modules.messages
 import config
 
 
-def money_rate(i_string):  # Responds to a user that inputs "!money <number> <CODE1>:<CODE2>"
-    # https://www.google.com/finance/converter
+def money_rate(i_string):
+    """
+    Responds to a user that inputs "!money <number> <CODE1>:<CODE2>"
+    API used: https://www.google.com/finance/converter
+
+    :param i_string: a string with these elements: "<number> <CODE1>:<CODE2>"
+    :print: parsed answer about money from the API
+    """
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
     tuple_string = i_string.partition(' ')
