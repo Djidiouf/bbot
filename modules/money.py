@@ -4,12 +4,17 @@ __author__ = 'Djidiouf'
 import urllib.request  # Open url request on website
 
 # Project modules
-import modules.messages
-import config
+import modules.connection
 
 
-def money_rate(i_string):  # Responds to a user that inputs "!money <number> <CODE1>:<CODE2>"
-    # https://www.google.com/finance/converter
+def money_rate(i_string):
+    """
+    Responds to a user that inputs "!money <number> <CODE1>:<CODE2>"
+    API used: https://www.google.com/finance/converter
+
+    :param i_string: a string with these elements: "<number> <CODE1>:<CODE2>"
+    :print: parsed answer about money from the API
+    """
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
     tuple_string = i_string.partition(' ')
@@ -37,8 +42,8 @@ def money_rate(i_string):  # Responds to a user that inputs "!money <number> <CO
     webpage = urllib.request.urlopen(url)
 
     rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
-    modules.messages.Message(config.channel).send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
+    modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
 
     total = amount * rate
-    modules.messages.Message(config.channel).send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
+    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
     webpage.close()

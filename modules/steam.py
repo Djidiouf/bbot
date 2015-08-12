@@ -9,17 +9,22 @@ import os       # For instruction related to the OS
 import shutil   # Used for OS tools
 
 # Project modules
-import modules.messages
 import modules.textalteration
-import config
+import modules.connection
 
 
-def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game Title>"
-    # using Steam API: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
-    # using Steam API: http://store.steampowered.com/api/appdetails?appids=392400&cc=fr
+def steam_price(i_string):
+    """
+    Responds to a user that inputs "!steamprice <Game Title>"
+    using Steam API: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
+    using Steam API: http://store.steampowered.com/api/appdetails?appids=392400&cc=fr
+
+    :param i_string: a string with these elements: "<Game Title>"
+    :print: parsed answer about Steam title from the API
+    """
 
     # Main variables
-    nameguess = i_string
+    nameguess = i_string.lower()
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
@@ -40,7 +45,7 @@ def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game 
 
     if nameguess == "@rm-cache":
         shutil.rmtree(cache_steam_dir)
-        modules.messages.Message(config.channel).send_message("Cache has been deleted")
+        modules.connection.send_message("Cache has been deleted")
         return  # Use ** return ** if in a function, exit() otherwise
 
     # Method ONLINE: URL only, no cache ----------------------
@@ -55,23 +60,23 @@ def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game 
 
     # Download the file if it doesn't exist or is too old
     if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - age):
-        modules.messages.Message(config.channel).send_message("Processing in progress (AppsID) ...")
+        modules.connection.send_message("Processing in progress (AppsID) ...")
         urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
     with open(steam_appsid_filename, encoding="utf8") as steam_appsid_data:
         steam_appsid = json.load(steam_appsid_data)
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
-
-        if line['name'] == nameguess:
+        if line['name'].lower() == nameguess:
             title_found = True
             title_spelling = False  # Need to set to False in case an approximative match had been made previously
 
             appid_guess = line['appid']
             appid_guess = str(appid_guess)
+            nameguess = line['name']  # Ensure that the correct case is displayed in the future
             break  # As an exact match has been found, there is no need to go further
 
-        if line['name'].startswith(nameguess):
+        if line['name'].lower().startswith(nameguess):
             title_spelling = True  # Found at least one approximative match
             results.append(line['name'])  # Add each match to a list
 
@@ -94,7 +99,7 @@ def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game 
 
         # Download the file if it doesn't exist or is too old
         if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - age):
-            modules.messages.Message(config.channel).send_message("Processing in progress (%s) ..." % appid_guess)
+            modules.connection.send_message("Processing in progress (%s) ..." % appid_guess)
             urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
         with open(steam_appsmeta_filename, encoding="utf8") as steam_appsmeta_data:
             steam_appsmeta = json.load(steam_appsmeta_data)
@@ -114,9 +119,9 @@ def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game 
                 price_final = float(price_final)
                 price_final *= 0.01  # Price was given in cents, switch to a more readable format
 
-                modules.messages.Message(config.channel).send_message("%s is at %.2f %s " % (nameguess, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+                modules.connection.send_message("%s is at %.2f %s " % (nameguess, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
             else:
-                modules.messages.Message(config.channel).send_message("No price information for that title")
+                modules.connection.send_message("No price information for that title")
 
             if "about_the_game" in steam_appsmeta[appid_guess]["data"]:
                 price_about_the_game = steam_appsmeta[appid_guess]["data"]["about_the_game"]
@@ -125,24 +130,24 @@ def steam_price(i_string):  # Responds to a user that inputs "!steamprice <Game 
                 html_elements = ["<p>", "<br />", "<strong>", "</strong>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
-                modules.messages.Message(config.channel).send_message("About: %s" % price_about_the_game[0:130] + " [...]")
+                modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
 
             if "metacritic" in steam_appsmeta[appid_guess]["data"]:
                 price_metacritic_score = steam_appsmeta[appid_guess]["data"]["metacritic"]["score"]
-                modules.messages.Message(config.channel).send_message("Metacritic: %s" % price_metacritic_score)
+                modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
         else:
-            modules.messages.Message(config.channel).send_message("No info available for that title")
+            modules.connection.send_message("No info available for that title")
 
         # Display the Steam Sore url of the title requested
-        modules.messages.Message(config.channel).send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
+        modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
 
         # Close the file
         steam_appsmeta_data.close()
 
     if title_spelling:
-        modules.messages.Message(config.channel).send_message("Exact title not found, you can try:")
+        modules.connection.send_message("Exact title not found, you can try:")
         for item in results[:results_nb]:  # Display X first items
-            modules.messages.Message(config.channel).send_message(item)
+            modules.connection.send_message(item)
 
     if not title_found and not title_spelling:
-        modules.messages.Message(config.channel).send_message("Title not found")
+        modules.connection.send_message("Title not found")
