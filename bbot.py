@@ -14,8 +14,10 @@ import re  # REGEX compiler
 
 
 # Project modules
-# import modules.steam  # Contains specific Steam-Valve related functions
+import modules.steam  # Contains specific Steam-Valve related functions
 import modules.messages
+import modules.money
+import modules.time
 
 
 # # arguments ---------------------------------------------------------------------
@@ -106,7 +108,7 @@ while 1:  # infinite loop
         try:
             # time_zone = 'Australia/Sydney'
             input_string = regex_coder(ircmsg, ":!time\s", 3)
-            modules.messages.Message(config.channel).give_time(input_string)
+            modules.time.give_time(input_string)
         except:
             modules.messages.Message(config.channel).send_message("Usage: !time <time_zones>")
             modules.messages.Message(config.channel).send_message("Purpose: Give the time in the specified time zone")
@@ -116,7 +118,7 @@ while 1:  # infinite loop
     if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!meet\s", 3)
-            modules.messages.Message(config.channel).give_hour_equivalence(input_string)
+            modules.time.give_hour_equivalence(input_string)
         except:
             modules.messages.Message(config.channel).send_message("Usage: !meet utc <HH:MM>")
             modules.messages.Message(config.channel).send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
@@ -126,7 +128,7 @@ while 1:  # infinite loop
     if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!money\s", 3)
-            modules.messages.Message(config.channel).money_rate(input_string)
+            modules.money.money_rate(input_string)
         except:
             modules.messages.Message(config.channel).send_message("Usage: !money <number> <CODE1>:<CODE2>")
             modules.messages.Message(config.channel).send_message("Purpose: Convert an amount from one currency to another")
@@ -144,7 +146,7 @@ while 1:  # infinite loop
     if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
-            modules.messages.Message(config.channel).steam_price(input_string)
+            modules.steam.steam_price(input_string)
         except:
             modules.messages.Message(config.channel).send_message("Usage: !steamprice <Game Title>")
             modules.messages.Message(config.channel).send_message("Purpose: Give the price of the given Steam game")
