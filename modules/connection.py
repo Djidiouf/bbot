@@ -33,11 +33,12 @@ conf.read('config.cfg')
 server = conf.get('bot_configuration', 'server')
 channel = conf.get('bot_configuration', 'channel')
 botnick = conf.get('bot_configuration', 'botnick')
+port = conf.getint('bot_configuration', 'port')
 
 # connection --------------------------------------------------------------------
 # connect to the server
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ircsock.connect((server, 6667))  # Connect to port 6667
+ircsock.connect((server, port))  # Connect to configured port
 
 # Sends the username, real name etc : user authentication
 ircsock.send(bytes("USER %s %s %s :%s\r\n" % (botnick, botnick, botnick, botnick), "UTF-8"))

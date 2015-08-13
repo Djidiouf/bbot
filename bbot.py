@@ -19,6 +19,7 @@
 # args = parser.parse_args()
 import configparser
 import re  # REGEX compiler
+import sys  # system library
 
 # Project modules
 import modules.steam  # Contains specific Steam-Valve related functions
@@ -26,6 +27,7 @@ import modules.money
 import modules.time
 import modules.speak
 import modules.connection
+import modules.help
 
 
 # conf = configparser.RawConfigParser()
@@ -43,6 +45,7 @@ conf.read('config.cfg')
 server = conf.get('bot_configuration', 'server')
 channel = conf.get('bot_configuration', 'channel')
 botnick = conf.get('bot_configuration', 'botnick')
+
 
 def regex_coder(message, expression, convention):
     p = re.compile(expression)  # Compile Regular Expression
@@ -80,6 +83,18 @@ while 1:  # infinite loop
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
+    # tracks "!help"
+    if ircmsg.find(bytes(":!help", "UTF-8")) != -1:
+        try:
+            input_string = regex_coder(ircmsg, ":!help\s", 3)
+            modules.help.display_help(input_string)
+        except:
+            try:
+                modules.help.display_help("!help")
+            except:
+                error = sys.exc_info()[0]
+                print("Error: %s" % error)
+
     # tracks "Hello <botname> <any message>"
     if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1:
         modules.speak.hello()
@@ -87,13 +102,14 @@ while 1:  # infinite loop
     # tracks "!time <Continent/City>"
     if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
         try:
-            # time_zone = 'Australia/Sydney'
             input_string = regex_coder(ircmsg, ":!time\s", 3)
             modules.time.give_time(input_string)
         except:
-            modules.connection.send_message("Usage: !time <time_zones>")
-            modules.connection.send_message("Purpose: Give the time in the specified time zone")
-            modules.connection.send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
+            try:
+                modules.help.display_help("!time")
+            except:
+                error = sys.exc_info()[0]
+                print("Error: %s" % error)
 
     # tracks "!meet <Continent/City> <HH:MM>"
     if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
@@ -101,9 +117,11 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!meet\s", 3)
             modules.time.give_hour_equivalence(input_string)
         except:
-            modules.connection.send_message("Usage: !meet utc <HH:MM>")
-            modules.connection.send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
-            modules.connection.send_message("Tip: Only utc time zone works at this moment")
+            try:
+                modules.help.display_help("!meet")
+            except:
+                error = sys.exc_info()[0]
+                print("Error: %s" % error)
 
     # tracks "!money <number> <CODE1>:<CODE2>"
     if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
@@ -111,9 +129,11 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!money\s", 3)
             modules.money.money_rate(input_string)
         except:
-            modules.connection.send_message("Usage: !money <number> <CODE1>:<CODE2>")
-            modules.connection.send_message("Purpose: Convert an amount from one currency to another")
-            modules.connection.send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217")
+            try:
+                modules.help.display_help("!money")
+            except:
+                error = sys.exc_info()[0]
+                print("Error: %s" % error)
 
     # tracks "!say <something>"
     if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
@@ -121,14 +141,20 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!say\s", 3)
             modules.speak.say(input_string)
         except:
-            modules.connection.send_message("Usage: !say <something>")
+            try:
+                modules.help.display_help("!say")
+            except:
+                error = sys.exc_info()[0]
+                print("Error: %s" % error)
 
-        # tracks "!steamprice <Game Title>"
+    # tracks "!steamprice <Game Title>"
     if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
             modules.steam.steam_price(input_string)
         except:
-            modules.connection.send_message("Usage: !steamprice <Game Title>")
-            modules.connection.send_message("Purpose: Give the price of the given Steam game")
-            modules.connection.send_message("Tip: Title must be exact")
+            try:
+                modules.help.display_help("!steamprice")
+            except:
+                error = sys.exc_info()[0]
+                print("Error: %s" % error)
