@@ -89,11 +89,9 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!help\s", 3)
             modules.help.display_help(input_string)
         except:
-            try:
-                modules.help.display_help("!help")
-            except:
-                error = sys.exc_info()[0]
-                print("Error: %s" % error)
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!help")
 
     # tracks "Hello <botname> <any message>"
     if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1:
@@ -105,11 +103,9 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!time\s", 3)
             modules.time.give_time(input_string)
         except:
-            try:
-                modules.help.display_help("!time")
-            except:
-                error = sys.exc_info()[0]
-                print("Error: %s" % error)
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!time")
 
     # tracks "!meet <Continent/City> <HH:MM>"
     if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
@@ -117,11 +113,9 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!meet\s", 3)
             modules.time.give_hour_equivalence(input_string)
         except:
-            try:
-                modules.help.display_help("!meet")
-            except:
-                error = sys.exc_info()[0]
-                print("Error: %s" % error)
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!meet")
 
     # tracks "!money <number> <CODE1>:<CODE2>"
     if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
@@ -129,11 +123,9 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!money\s", 3)
             modules.money.money_rate(input_string)
         except:
-            try:
-                modules.help.display_help("!money")
-            except:
-                error = sys.exc_info()[0]
-                print("Error: %s" % error)
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!money")
 
     # tracks "!say <something>"
     if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
@@ -141,11 +133,9 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!say\s", 3)
             modules.speak.say(input_string)
         except:
-            try:
-                modules.help.display_help("!say")
-            except:
-                error = sys.exc_info()[0]
-                print("Error: %s" % error)
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!say")
 
     # tracks "!steamprice <Game Title>"
     if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
@@ -153,8 +143,6 @@ while 1:  # infinite loop
             input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
             modules.steam.steam_price(input_string)
         except:
-            try:
-                modules.help.display_help("!steamprice")
-            except:
-                error = sys.exc_info()[0]
-                print("Error: %s" % error)
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!steamprice")
