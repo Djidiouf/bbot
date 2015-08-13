@@ -80,11 +80,12 @@ while 1:  # infinite loop
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # removes unnecessary linebreaks
     print(ircmsg)  # DEBUG: print output of the channel
 
-    # tracks PING : if the server pings the bot, it will answer
+    # TRACKS ##################################################################
+    # PING : if the server pings the bot, it will answer
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
-    # tracks "!help"
+    # !help
     if ircmsg.find(bytes(":!help", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!help\s", 3)
@@ -94,11 +95,11 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!help")
 
-    # tracks "Hello <botname> <any message>"
-    if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1:
+    # Hello <botname> <any message>
+    if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1 or ircmsg.find(bytes(":hello %s" % botnick, "UTF-8")) != -1:
         modules.speak.hello()
 
-    # tracks "!time <Continent/City>"
+    # !time <Continent/City>
     if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!time\s", 3)
@@ -108,7 +109,7 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!time")
 
-    # tracks "!meet <Continent/City> <HH:MM>"
+    # !meet <Continent/City> <HH:MM>
     if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!meet\s", 3)
@@ -118,7 +119,7 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!meet")
 
-    # tracks "!money <number> <CODE1>:<CODE2>"
+    # !money <number> <CODE1>:<CODE2>
     if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!money\s", 3)
@@ -128,7 +129,7 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!money")
 
-    # tracks "!say <something>"
+    # !say <something>
     if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!say\s", 3)
@@ -138,7 +139,7 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!say")
 
-    # tracks "!steamprice <Game Title>"
+    # !steamprice <Game Title>
     if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
@@ -148,7 +149,7 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!steamprice")
 
-    # tracks "!imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>"
+    # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
     if ircmsg.find(bytes(":!imdb", "UTF-8")) != -1:
         try:
             input_string = regex_coder(ircmsg, ":!imdb\s", 3)
@@ -156,4 +157,4 @@ while 1:  # infinite loop
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
-            modules.help.display_help("!movie")
+            modules.help.display_help("!imdb")

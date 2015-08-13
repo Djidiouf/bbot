@@ -2,6 +2,7 @@ __author__ = 'Djidiouf'
 
 # Python built-in modules
 import urllib.request  # Open url request on website
+import urllib.parse
 import json  # Library for being able to read Json file
 
 # Project modules
@@ -29,18 +30,24 @@ def imdb_info(i_string):
     part_one = tuple_string[0]
     part_two = tuple_string[2]
 
+
     if not part_one.startswith("id:"):
         part_one = modules.textalteration.string_replace(part_one, ' ', '+')  # Spaces need to be replace in the url
 
-        omdb_url_full_detailed = 'http://www.omdbapi.com/?t=%s&y=%s&plot=short&r=json' % (part_one, part_two)
-        omdb_request_api = urllib.request.urlopen(omdb_url_full_detailed).read().decode('utf-8')
+        # Parse of the arguments needed for movies with accents
+        omdb_url_half_detailed = "t=%s&y=%s&plot=short&r=json" % ((urllib.parse.quote(part_one),part_two))
+        omdb_request_api = urllib.request.urlopen("http://www.omdbapi.com/?" + omdb_url_half_detailed)
+
+        omdb_request_api = omdb_request_api.read().decode('utf-8')
+
         omdb_json = json.loads(omdb_request_api)
+
 
         if "Response" in omdb_json and omdb_json["Response"] == "True":
             movie_found = True
 
     if part_one.startswith("id:"):
-        # Separation of i:tt0411008
+        # Separation of id:tt0411008
         tuple_id = part_one.partition(':')
         imdb_id = tuple_id[2]
 
