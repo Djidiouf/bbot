@@ -29,7 +29,9 @@ def steam_price(i_string):
 
     # Time variables
     now = time.time()
-    age = 86400  # 86400 = 24hr
+    cache_age = 86400  # 86400 = 24hr
+    m, s = divmod(cache_age, 60)
+    h, m = divmod(m, 60)
 
     # Condition variables
     title_found = False
@@ -59,8 +61,8 @@ def steam_price(i_string):
     steam_appsid_filename = os.path.join(cache_steam_dir, 'steam_appsid.json')  # Name of the local file
 
     # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - age):
-        modules.connection.send_message("Processing in progress (AppsID) ...")
+    if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
+        modules.connection.send_message("Data outdated (> %dhr %02dmin), retrieving new Steam titles list ..." % (h, m))
         urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
     with open(steam_appsid_filename, encoding="utf8") as steam_appsid_data:
         steam_appsid = json.load(steam_appsid_data)
@@ -80,9 +82,6 @@ def steam_price(i_string):
             title_spelling = True  # Found at least one approximative match
             results.append(line['name'])  # Add each match to a list
 
-        # Close the file
-        steam_appsid_data.close()
-
     if title_found:
         url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (appid_guess, country)
         # print(webpage)
@@ -98,9 +97,10 @@ def steam_price(i_string):
         steam_appsmeta_filename = os.path.join(cache_steam_dir, steam_appsmeta_filename)  # Name of the local file
 
         # Download the file if it doesn't exist or is too old
-        if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - age):
-            modules.connection.send_message("Processing in progress (%s) ..." % appid_guess)
+        if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - cache_age):
+            modules.connection.send_message("Title found (%s), retrieving last metadata ..." % appid_guess)
             urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
+
         with open(steam_appsmeta_filename, encoding="utf8") as steam_appsmeta_data:
             steam_appsmeta = json.load(steam_appsmeta_data)
 
@@ -140,9 +140,6 @@ def steam_price(i_string):
 
         # Display the Steam Sore url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
-
-        # Close the file
-        steam_appsmeta_data.close()
 
     if title_spelling:
         modules.connection.send_message("Exact title not found, you can try:")
