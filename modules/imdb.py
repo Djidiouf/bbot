@@ -9,17 +9,17 @@ import modules.connection
 import modules.textalteration
 
 
-def movie_info(i_string):
+def imdb_info(i_string):
     """
     Responds to a user that inputs:
-                                    "!movie <Guessed Title>"
-                                    "!movie <Guessed Title>#<Year>"
-                                    "!movie i:<imdbID>"
+                                    "!imdb <Guessed Title>"
+                                    "!imdb <Guessed Title>#<Year>"
+                                    "!imdb i:<imdbID>"
 
     using The Open Movie Database API: http://www.omdbapi.com
 
     :param i_string: a string with these elements: "<Guessed Title>" or <Guessed Title>#<Year>" or "<imdbID>"
-    :print: parsed answer about a movie title from the API
+    :print: parsed answer about a imdb title from the API
     """
     movie_found = False
 
@@ -29,7 +29,7 @@ def movie_info(i_string):
     part_one = tuple_string[0]
     part_two = tuple_string[2]
 
-    if not part_one.startswith("i:"):
+    if not part_one.startswith("id:"):
         part_one = modules.textalteration.string_replace(part_one, ' ', '+')  # Spaces need to be replace in the url
 
         omdb_url_full_detailed = 'http://www.omdbapi.com/?t=%s&y=%s&plot=short&r=json' % (part_one, part_two)
@@ -39,7 +39,7 @@ def movie_info(i_string):
         if "Response" in omdb_json and omdb_json["Response"] == "True":
             movie_found = True
 
-    if part_one.startswith("i:"):
+    if part_one.startswith("id:"):
         # Separation of i:tt0411008
         tuple_id = part_one.partition(':')
         imdb_id = tuple_id[2]
@@ -52,7 +52,7 @@ def movie_info(i_string):
             movie_found = True
 
         # A json file is there whatever is requested.
-        # "Response" is True if the movie exists
+        # "Response" is True if the imdb title exists
         # "Response" is False if not
     if movie_found:
         if "Title" in omdb_json and "Released" in omdb_json:
@@ -75,4 +75,4 @@ def movie_info(i_string):
             movie_imdbrating = omdb_json["imdbRating"]
             modules.connection.send_message("imdbID: %s - Rating: %s" % (movie_imdbid, movie_imdbrating))
     else:
-        modules.connection.send_message("Movie not found!")
+        modules.connection.send_message("IMDB title not found!")

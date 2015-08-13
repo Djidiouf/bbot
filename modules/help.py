@@ -14,10 +14,10 @@ def display_help(i_string):
         modules.connection.send_message("Usage: !meet utc <HH:MM>")
         modules.connection.send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
         modules.connection.send_message("Tip: Only utc time zone works at this moment")
-    elif i_string == "!movie":
-        modules.connection.send_message("Usage: !movie <Guessed Title>")
-        modules.connection.send_message("Usage: !movie <Guessed Title>#<Year>")
-        modules.connection.send_message("Usage: !movie i:<imdbID>")
+    elif i_string == "!imdb":
+        modules.connection.send_message("Usage: !imdb <Guessed Title>")
+        modules.connection.send_message("Usage: !imdb <Guessed Title>#<Year>")
+        modules.connection.send_message("Usage: !imdb id:<imdbID>")
         modules.connection.send_message("Purpose: Give information about a movie / TV serie")
         modules.connection.send_message("Tip: Title you enter is a guessed title, specify the year for more accuracy")
     elif i_string == "!money":
@@ -42,6 +42,7 @@ def display_help(i_string):
         modules.connection.send_message("!help <command>")
         modules.connection.send_message("!meet utc <HH:MM>")
         modules.connection.send_message("!money <number> <CODE1>:<CODE2>")
+        modules.connection.send_message("!imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>")
         modules.connection.send_message("!say <something>")
         modules.connection.send_message("!steamprice <Game Title>")
         modules.connection.send_message("!time <time_zones>")
