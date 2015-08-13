@@ -28,6 +28,7 @@ import modules.time
 import modules.speak
 import modules.connection
 import modules.help
+import modules.movie
 
 
 # conf = configparser.RawConfigParser()
@@ -146,3 +147,13 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!steamprice")
+
+    # tracks "!movie <Title>"
+    if ircmsg.find(bytes(":!movie", "UTF-8")) != -1:
+        try:
+            input_string = regex_coder(ircmsg, ":!movie\s", 3)
+            modules.movie.movie_info(input_string)
+        except:
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!movie")

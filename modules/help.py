@@ -14,6 +14,12 @@ def display_help(i_string):
         modules.connection.send_message("Usage: !meet utc <HH:MM>")
         modules.connection.send_message("Purpose: Give the equivalence of the specified utc time input in several time zones")
         modules.connection.send_message("Tip: Only utc time zone works at this moment")
+    elif i_string == "!movie":
+        modules.connection.send_message("Usage: !movie <Guessed Title>")
+        modules.connection.send_message("Usage: !movie <Guessed Title>#<Year>")
+        modules.connection.send_message("Usage: !movie i:<imdbID>")
+        modules.connection.send_message("Purpose: Give information about a movie / TV serie")
+        modules.connection.send_message("Tip: Title you enter is a guessed title, specify the year for more accuracy")
     elif i_string == "!money":
         modules.connection.send_message("Usage: !money <number> <CODE1>:<CODE2>")
         modules.connection.send_message("Purpose: Convert an amount from one currency to another")
