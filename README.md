@@ -28,20 +28,20 @@ Rename the config_example.cfg to config.cfg and change these 3 variables under [
 
 
 #### !say
-!say <text> - Allow you to make the bbot speaks! NB: You can send that command in private
+````!say <text>```` Allow you to make the bbot speaks! NB: You can send that command in private
 
     Someone: !say I'm the best bbot
     TheBot : I'm the best bbot
 
 
 #### !time
-!time <time_zone> - Give time of timezone in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+````!time <time_zone>```` Give time of timezone in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
     Someone: !time Australia/Sydney
     TheBot : 2015-08-05 - 10:28:04 - AEST+1000 - Australia/Sydney
 
 
-!time bchat - Special command that you can change in order to give you specific timezones at once
+````!time bchat```` Special command that you can change in order to give you specific timezones at once
 
     Someone: !time bchat
     TheBot : 2015-08-05 - 01:28:25 - BST+0100 - Europe/London
@@ -50,7 +50,7 @@ Rename the config_example.cfg to config.cfg and change these 3 variables under [
 
 
 #### !meet
-!meet utc <HH:MM> - Allow to see the specified UTC time given in specific timezones
+````!meet utc <HH:MM>```` Allow to see the specified UTC time given in specific timezones
 
     Someone: !meet utc 10:00
     TheBot : 2015-08-06 - 10:00:00 - UTC+0000 - UTC
@@ -60,7 +60,7 @@ Rename the config_example.cfg to config.cfg and change these 3 variables under [
 
 
 #### !money
-!money <amount> <CODE1>:<CODE2> - Convert an amount from one currency to another
+````!money <amount> <CODE1>:<CODE2>```` Convert an amount from one currency to another
 
     Someone: !money 15.5 EUR:AUD
     TheBot : Rate: 1 EUR = 1.4894 AUD
@@ -68,22 +68,53 @@ Rename the config_example.cfg to config.cfg and change these 3 variables under [
 
 
 #### !steamprice
-!steamprice <Title> - Retrieve data info about a specific Title.
+````!steamprice <Title>```` Retrieve data info about a specific Title.
 
-    Someone: !steamprice Cities:Skylines
+    Someone: !steamprice Cities: Skylines
+    TheBot : Data outdated (> 24hr 00min), retrieving new Steam titles list ...
+    TheBot : Title found (255710), retrieving last metadata ...
     TheBot : Cities: Skylines is at 27.99 EUR (from: 27.99 EUR , discount: 0%)
-    TheBot : About: Cities: Skylines is a modern take on the classic city simulation. [...]
+    TheBot : About: Cities: Skylines is a modern take on the classic city simulation. The game introduces new game play elements to realize the thrill [...]
     TheBot : Metacritic: 86
     TheBot : SteamStore: http://store.steampowered.com/app/255710?cc=fr
 
 
-!steamprice <Title> - If an exact match hasn't been found, 3 potential results will be displayed.
+````!steamprice <Title>```` If an exact match hasn't been found, 3 potential results will be displayed.
 
     Someone: !steamprice PAYDAY
     TheBot : Exact title not found, you can try:
     TheBot : PAYDAY: The Heist
     TheBot : PAYDAY The Heist Mercy Hospital Trailer
     TheBot : PAYDAY: The Heist - Wolfpack Weapons
+    
+````!steamprice @rm-cache```` Delete the cache folder for steam files: "cache-steam"
+
+    Someone: !steamprice @rm-cache
+    TheBot : Cache has been deleted
+    
+#### !imdb
+````!imdb <Guessed Title>```` Retrieve data info about a movie / TV show.
+
+    Someone: !imdb My name is Nobody
+    TheBot : Title: My Name Is Nobody (Release date: 17 Jul 1974)
+    TheBot : Italy, France, West Germany - 116 min - Western, Comedy
+    TheBot : Plot: A young, easygoing gunman (Hill) worships and competes with an old gunfighter (Fonda) who only wants to retire.imdbID: tt0070215 - Rating: 7.5
+
+````!imdb <Guessed Title>#<Year>```` Retrieve data info about a movie / TV show.
+
+    Someone: !imdb lost#2004
+    TheBot : Title: Lost (Release date: 22 Sep 2004)
+    TheBot : USA - 44 min - Adventure, Drama, Fantasy
+    TheBot : Plot: The survivors of a plane crash are forced to work together in order to survive on a seemingly deserted tropical island.
+    TheBot : imdbID: tt0411008 - Rating: 8.5
+
+````!imdb id:<imdbID>```` Retrieve data info about a movie / TV show.
+
+    Someone: !imdb id:tt0386676
+    TheBot : Title: The Office (Release date: 24 Mar 2005)
+    TheBot : USA - 22 min - Comedy
+    TheBot : Plot: A mockumentary on a group of typical office workers, where the workday consists of ego clashes, inappropriate behavior, and tedium. Based on the hit BBC series.
+    TheBot : imdbID: tt0386676 - Rating: 8.8
 
 ### Version
 0.1
