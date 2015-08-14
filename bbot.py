@@ -77,7 +77,7 @@ modules.connection.join_chan(channel)
 # Receive all the data from the server & channel
 while 1:  # infinite loop
     ircmsg = modules.connection.receive_data()  # Receive data from the server
-    ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # removes unnecessary linebreaks
+    ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # Remove linebreaks which appear on each message
     print(ircmsg)  # DEBUG: print output of the channel
 
     # TRACKS ##################################################################
