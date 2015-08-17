@@ -46,6 +46,18 @@ conf.read('config.cfg')
 server = conf.get('bot_configuration', 'server')
 channel = conf.get('bot_configuration', 'channel')
 botnick = conf.get('bot_configuration', 'botnick')
+admin = conf.get('bot_configuration', 'admin')
+
+
+ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: EveryAdmin!~EveryAdmin@123.123.123.123
+user_message = r"(.*)!~(.*)" + r"@" + ip_format  # Match: EveryUser!~EveryUser@123.123.123.123
+
+quit_regex = admin_message + r" PRIVMSG " + re.escape(channel) +  r" :" + r"!quit"
+quit_regex = bytes(quit_regex, "UTF-8")
+
+op_regex = user_message + r" PRIVMSG " + re.escape(channel) +  r" :" + r"!op"
+op_regex = bytes(op_regex, "UTF-8")
 
 
 def regex_coder(message, expression, convention):
@@ -158,3 +170,23 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!imdb")
+
+    # !quit
+    if ircmsg.find(bytes(admin + "!~Djidiouf@203.210.68.172" + " PRIVMSG " + channel + " :!quit", "UTF-8")) != -1:
+        print("quit message")
+        #quit()
+
+    # !quit REGEX
+    if re.search(quit_regex, ircmsg, re.IGNORECASE):
+        #DEBUG print("REGEX quit message")
+        modules.connection.send_message("Bye bye bitch!")
+        quit()
+    # !quit REGEX
+    if re.search(quit_regex, ircmsg, re.IGNORECASE):
+        #DEBUG print("REGEX quit message")
+        modules.connection.send_message("Bye bye bitches!")
+        quit()
+
+    # !quit REGEX
+    if re.search(op_regex, ircmsg, re.IGNORECASE):
+        modules.connection.send_message("Nice try!")
