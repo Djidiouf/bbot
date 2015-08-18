@@ -13,11 +13,13 @@ Extract the bbot folder on your desktop and open a command line terminal (Window
     $ cd bbot
     $ python bbot.py
 
-Rename the config_example.cfg to config.cfg and change these 3 variables under [bot_configuration]:
+Rename the config_example.cfg to config.cfg and change these 5 variables under [bot_configuration]:
 
     server = your.irc.server.com
     channel = ##your_channel
     botnick = bbot
+    port = 6667
+    admins = You,Him
 
 ### Features
 

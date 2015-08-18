@@ -2,6 +2,10 @@ __author__ = 'Djidiouf'
 
 import socket
 import configparser
+import ssl
+
+# list of SSL ports for IRC
+irc_ssl_ports = [6697, 7070]
 
 
 def send_message(msg):
@@ -11,8 +15,8 @@ def send_message(msg):
         :param msg: string needed to be encoded and sent on IRC
         :return:
         """
-        channel = conf.get('bot_configuration', 'channel')
-        ircsock.send(bytes("PRIVMSG %s :" % channel + msg + "\r\n", "UTF-8"))
+        chan = config.get('bot_configuration', 'channel')
+        ircsock.send(bytes("PRIVMSG %s :" % chan + msg + "\r\n", "UTF-8"))
 
 
 def ping():  # Respond to server pings
@@ -28,16 +32,21 @@ def receive_data():
     return a
 
 
-conf = configparser.RawConfigParser()
-conf.read('config.cfg')
-server = conf.get('bot_configuration', 'server')
-channel = conf.get('bot_configuration', 'channel')
-botnick = conf.get('bot_configuration', 'botnick')
-port = conf.getint('bot_configuration', 'port')
+config = configparser.RawConfigParser()
+config.read('config.cfg')
+server = config.get('bot_configuration', 'server')
+channel = config.get('bot_configuration', 'channel')
+botnick = config.get('bot_configuration', 'botnick')
+port = config.getint('bot_configuration', 'port')
 
 # connection --------------------------------------------------------------------
 # connect to the server
 ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Determine if an SSL connection can be attempted if a IRC SSL port is configured
+if port in irc_ssl_ports:
+    ircsock = ssl.wrap_socket(ircsock)
+
 ircsock.connect((server, port))  # Connect to configured port
 
 # Sends the username, real name etc : user authentication
