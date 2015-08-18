@@ -132,7 +132,7 @@ def regex_coder(message, expression, convention):
 
 def regex_search_arguments(message, expression):
     decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
-    arguments_regex = r'(?<=' + re.escape(expression) + r')(.*)'
+    arguments_regex = r'(?<=' + re.escape(expression) + r' )(.*)'
     string_searched = re.search(arguments_regex, decoded_ircmsg, re.IGNORECASE)
     # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
     arguments = string_searched.group(0)
@@ -161,7 +161,7 @@ while 1:  # infinite loop
     # !help
     if re.search(help_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!help ")
+            input_string = regex_search_arguments(ircmsg, "!help")
             modules.help.display_help(input_string)
         except:
             error = sys.exc_info()[0]
@@ -171,7 +171,7 @@ while 1:  # infinite loop
     # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
     if re.search(imdb_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!imdb ")
+            input_string = regex_search_arguments(ircmsg, "!imdb")
             modules.imdb.imdb_info(input_string)
         except:
             error = sys.exc_info()[0]
@@ -181,7 +181,7 @@ while 1:  # infinite loop
     # !meet <Continent/City> <HH:MM>
     if re.search(meet_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!meet ")
+            input_string = regex_search_arguments(ircmsg, "!meet")
             modules.time.give_hour_equivalence(input_string)
         except:
             error = sys.exc_info()[0]
@@ -195,7 +195,7 @@ while 1:  # infinite loop
     # !money <number> <CODE1>:<CODE2>
     if re.search(money_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!money ")
+            input_string = regex_search_arguments(ircmsg, "!money")
             modules.money.money_rate(input_string)
         except:
             error = sys.exc_info()[0]
@@ -213,7 +213,7 @@ while 1:  # infinite loop
     # !say <something>
     if re.search(say_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!say ")
+            input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
         except:
             error = sys.exc_info()[0]
@@ -223,7 +223,7 @@ while 1:  # infinite loop
     # !say <something>
     if re.search(say_private_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!say ")
+            input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
         except:
             error = sys.exc_info()[0]
@@ -233,7 +233,7 @@ while 1:  # infinite loop
     # !steamprice <Game Title>
     if re.search(steamprice_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!steamprice ")
+            input_string = regex_search_arguments(ircmsg, "!steamprice")
             modules.steam.steam_price(input_string)
         except:
             error = sys.exc_info()[0]
@@ -243,7 +243,7 @@ while 1:  # infinite loop
     # !time <Continent/City>
     if re.search(time_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!time ")
+            input_string = regex_search_arguments(ircmsg, "!time")
             modules.time.give_time(input_string)
         except:
             error = sys.exc_info()[0]
