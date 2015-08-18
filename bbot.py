@@ -41,12 +41,13 @@ import modules.imdb
 # with open('config.cfg', 'w') as configfile:
 #     conf.write(configfile)
 
-conf = configparser.RawConfigParser()
-conf.read('config.cfg')
-server = conf.get('bot_configuration', 'server')
-channel = conf.get('bot_configuration', 'channel')
-botnick = conf.get('bot_configuration', 'botnick')
-admin = conf.get('bot_configuration', 'admin')
+# Read config file
+config = configparser.RawConfigParser()
+config.read('config.cfg')
+server = config.get('bot_configuration', 'server')
+channel = config.get('bot_configuration', 'channel')
+botnick = config.get('bot_configuration', 'botnick')
+admin = config.get('bot_configuration', 'admin')
 
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
@@ -132,10 +133,10 @@ def regex_coder(message, expression, convention):
 def regex_search_arguments(message, expression):
     decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
     arguments_regex = r'(?<=' + re.escape(expression) + r')(.*)'
-    string_search = re.search(arguments_regex, decoded_ircmsg, re.IGNORECASE)
-    # print("string_search =", string_search)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
-    coded_message = string_search.group(0)
-    return coded_message
+    string_searched = re.search(arguments_regex, decoded_ircmsg, re.IGNORECASE)
+    # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
+    arguments = string_searched.group(0)
+    return arguments
 
 
 # connect and join the configured channel
