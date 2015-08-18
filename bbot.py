@@ -47,8 +47,12 @@ config.read('config.cfg')
 server = config.get('bot_configuration', 'server')
 channel = config.get('bot_configuration', 'channel')
 botnick = config.get('bot_configuration', 'botnick')
-admin = config.get('bot_configuration', 'admin')
+# admins_list = config.get('bot_configuration', 'admin')
+admins_list = config.get('bot_configuration', 'admins').split(",")
 
+for each in admins_list:
+    print(each)
+admin = 'test'
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
@@ -138,6 +142,30 @@ def regex_search_arguments(message, expression):
     arguments = string_searched.group(0)
     return arguments
 
+def is_message_from_admin(message):
+    is_from_admin = False
+
+    decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
+
+    for element in admins_list:
+        print("element is :", element)
+        user_involved_regex = re.escape(element) + r'(?=!~' + re.escape(element) + r'@)'
+        print("user_involved_regex is :", user_involved_regex)
+
+        try:
+            user_involved_searched = re.search(user_involved_regex, decoded_ircmsg, re.IGNORECASE)
+            print("user_involved_searched is :", user_involved_searched)
+            user_involved = user_involved_searched.group(0)
+            print("user_involved is :", user_involved)
+            is_from_admin = True
+            break
+        except AttributeError:
+            is_from_admin = False
+            pass
+
+    print("is_from_admin is :", is_from_admin)
+    return is_from_admin
+
 
 # connect and join the configured channel
 modules.connection.join_chan(channel)
@@ -163,7 +191,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!help")
             modules.help.display_help(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!help")
@@ -173,7 +201,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!imdb")
             modules.imdb.imdb_info(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!imdb")
@@ -183,7 +211,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!meet")
             modules.time.give_hour_equivalence(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!meet")
@@ -197,14 +225,14 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!money")
             modules.money.money_rate(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!money")
 
     # !quit REGEX
-    if re.search(quit_regex, ircmsg, re.IGNORECASE):
-        if re.search(quit_regex, ircmsg, re.IGNORECASE):
+    if re.search(quit_user_regex, ircmsg, re.IGNORECASE):
+        if is_message_from_admin(ircmsg):  # Catch if a bot admin is at the origin of the message
             modules.connection.send_message("Bye bye bitches!")
             quit()
         else:
@@ -215,7 +243,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!say")
@@ -225,7 +253,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!say")
@@ -235,7 +263,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!steamprice")
             modules.steam.steam_price(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!steamprice")
@@ -245,7 +273,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!time")
             modules.time.give_time(input_string)
-        except:
+        except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!time")

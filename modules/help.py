@@ -5,10 +5,9 @@ import modules.connection
 
 
 def print_help_help():
-    modules.connection.send_message("Usage: !help")
-    modules.connection.send_message("Usage: !help <handler>")
-    modules.connection.send_message("Known handlers: !help !imdb !meet !money !quit !say !steamprice !timed")
-    modules.connection.send_message("Tip: Help yourself if !help is not enough for you")
+    modules.connection.send_message("Usage: !help [handler]")
+    modules.connection.send_message("Known handlers:")
+    modules.connection.send_message("!help !imdb !meet !money !quit !say !steamprice !time")
 
 
 def display_help(i_string):
