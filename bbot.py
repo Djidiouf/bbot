@@ -49,18 +49,65 @@ botnick = conf.get('bot_configuration', 'botnick')
 admin = conf.get('bot_configuration', 'admin')
 
 
-ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: EveryAdmin!~EveryAdmin@123.123.123.123
-user_message = r"(.*)!~(.*)" + r"@" + ip_format  # Match: EveryUser!~EveryUser@123.123.123.123
+# ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
+ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
+user_message = r"(.*)!~(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
+admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
 
-quit_regex = admin_message + r" PRIVMSG " + re.escape(channel) +  r" :" + r"!quit"
-quit_regex = bytes(quit_regex, "UTF-8")
+# REGEX ###############
+# !help
+help_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!help"
+help_regex = bytes(help_regex, "UTF-8")
 
-op_regex = user_message + r" PRIVMSG " + re.escape(channel) +  r" :" + r"!op"
+# !imdb
+imdb_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!imdb"
+imdb_regex = bytes(imdb_regex, "UTF-8")
+
+# !meet
+meet_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!meet"
+meet_regex = bytes(meet_regex, "UTF-8")
+
+# !money
+money_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!money"
+money_regex = bytes(money_regex, "UTF-8")
+
+# !op
+op_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!op"
 op_regex = bytes(op_regex, "UTF-8")
+
+# !quit
+quit_regex = admin_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
+quit_regex = bytes(quit_regex, "UTF-8")
+quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
+quit_user_regex = bytes(quit_user_regex, "UTF-8")
+
+# !say
+say_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :" + r"!say"
+say_regex = bytes(say_regex, "UTF-8")
+
+# !say (In private: /msg botnick !say)
+say_private_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
+say_private_regex = bytes(say_private_regex, "UTF-8")
+
+# !steamprice
+steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
+steamprice_regex = bytes(steamprice_regex, "UTF-8")
+
+# !time
+time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
+time_regex = bytes(time_regex, "UTF-8")
 
 
 def regex_coder(message, expression, convention):
+    """
+    Use with:
+    input_string = regex_coder(ircmsg, ":!meet\s", 3)
+
+    :param message:
+    :param expression:
+    :param convention:
+    :return:
+    """
     p = re.compile(expression)  # Compile Regular Expression
     decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
     string_search = p.search(decoded_ircmsg)  # search the string for RE
@@ -82,6 +129,15 @@ def regex_coder(message, expression, convention):
         print("convention not found")
 
 
+def regex_search_arguments(message, expression):
+    decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
+    arguments_regex = r'(?<=' + re.escape(expression) + r')(.*)'
+    string_search = re.search(arguments_regex, decoded_ircmsg, re.IGNORECASE)
+    # print("string_search =", string_search)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
+    coded_message = string_search.group(0)
+    return coded_message
+
+
 # connect and join the configured channel
 modules.connection.join_chan(channel)
 
@@ -97,54 +153,76 @@ while 1:  # infinite loop
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
+    # Hello <botname> <any message>
+    if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1 or ircmsg.find(bytes(":hello %s" % botnick, "UTF-8")) != -1:
+        modules.speak.hello()
+
     # !help
-    if ircmsg.find(bytes(":!help", "UTF-8")) != -1:
+    if re.search(help_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!help\s", 3)
+            input_string = regex_search_arguments(ircmsg, "!help ")
             modules.help.display_help(input_string)
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!help")
 
-    # Hello <botname> <any message>
-    if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1 or ircmsg.find(bytes(":hello %s" % botnick, "UTF-8")) != -1:
-        modules.speak.hello()
-
-    # !time <Continent/City>
-    if ircmsg.find(bytes(":!time", "UTF-8")) != -1:
+    # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
+    if re.search(imdb_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!time\s", 3)
-            modules.time.give_time(input_string)
+            input_string = regex_search_arguments(ircmsg, "!imdb ")
+            modules.imdb.imdb_info(input_string)
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
-            modules.help.display_help("!time")
+            modules.help.display_help("!imdb")
 
     # !meet <Continent/City> <HH:MM>
-    if ircmsg.find(bytes(":!meet", "UTF-8")) != -1:
+    if re.search(meet_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!meet\s", 3)
+            input_string = regex_search_arguments(ircmsg, "!meet ")
             modules.time.give_hour_equivalence(input_string)
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!meet")
 
+    # !op REGEX
+    if re.search(op_regex, ircmsg, re.IGNORECASE):
+        modules.connection.send_message("Nice try!")
+
     # !money <number> <CODE1>:<CODE2>
-    if ircmsg.find(bytes(":!money", "UTF-8")) != -1:
+    if re.search(money_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!money\s", 3)
+            input_string = regex_search_arguments(ircmsg, "!money ")
             modules.money.money_rate(input_string)
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!money")
 
+    # !quit REGEX
+    if re.search(quit_regex, ircmsg, re.IGNORECASE):
+        if re.search(quit_regex, ircmsg, re.IGNORECASE):
+            modules.connection.send_message("Bye bye bitches!")
+            quit()
+        else:
+            modules.connection.send_message("*rires*")
+
     # !say <something>
-    if ircmsg.find(bytes(":!say", "UTF-8")) != -1:
+    if re.search(say_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!say\s", 3)
+            input_string = regex_search_arguments(ircmsg, "!say ")
+            modules.speak.say(input_string)
+        except:
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!say")
+
+    # !say <something>
+    if re.search(say_private_regex, ircmsg, re.IGNORECASE):
+        try:
+            input_string = regex_search_arguments(ircmsg, "!say ")
             modules.speak.say(input_string)
         except:
             error = sys.exc_info()[0]
@@ -152,41 +230,21 @@ while 1:  # infinite loop
             modules.help.display_help("!say")
 
     # !steamprice <Game Title>
-    if ircmsg.find(bytes(":!steamprice", "UTF-8")) != -1:
+    if re.search(steamprice_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!steamprice\s", 3)
+            input_string = regex_search_arguments(ircmsg, "!steamprice ")
             modules.steam.steam_price(input_string)
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!steamprice")
 
-    # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
-    if ircmsg.find(bytes(":!imdb", "UTF-8")) != -1:
+    # !time <Continent/City>
+    if re.search(time_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_coder(ircmsg, ":!imdb\s", 3)
-            modules.imdb.imdb_info(input_string)
+            input_string = regex_search_arguments(ircmsg, "!time ")
+            modules.time.give_time(input_string)
         except:
             error = sys.exc_info()[0]
             print("Error: %s" % error)
-            modules.help.display_help("!imdb")
-
-    # !quit
-    if ircmsg.find(bytes(admin + "!~Djidiouf@203.210.68.172" + " PRIVMSG " + channel + " :!quit", "UTF-8")) != -1:
-        print("quit message")
-        #quit()
-
-    # !quit REGEX
-    if re.search(quit_regex, ircmsg, re.IGNORECASE):
-        #DEBUG print("REGEX quit message")
-        modules.connection.send_message("Bye bye bitch!")
-        quit()
-    # !quit REGEX
-    if re.search(quit_regex, ircmsg, re.IGNORECASE):
-        #DEBUG print("REGEX quit message")
-        modules.connection.send_message("Bye bye bitches!")
-        quit()
-
-    # !quit REGEX
-    if re.search(op_regex, ircmsg, re.IGNORECASE):
-        modules.connection.send_message("Nice try!")
+            modules.help.display_help("!time")
