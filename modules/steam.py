@@ -75,7 +75,7 @@ def steam_price(i_string):
 
             appid_guess = line['appid']
             appid_guess = str(appid_guess)
-            nameguess = line['name']  # Ensure that the correct case is displayed in the future
+            corrected_name = line['name']  # Ensure that the correct case is displayed in the future
             break  # As an exact match has been found, there is no need to go further
 
         if line['name'].lower().startswith(nameguess):
@@ -119,7 +119,7 @@ def steam_price(i_string):
                 price_final = float(price_final)
                 price_final *= 0.01  # Price was given in cents, switch to a more readable format
 
-                modules.connection.send_message("%s is at %.2f %s " % (nameguess, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+                modules.connection.send_message("%s is at %.2f %s " % (corrected_name, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
             else:
                 modules.connection.send_message("No price information for that title")
 
@@ -127,7 +127,7 @@ def steam_price(i_string):
                 price_about_the_game = steam_appsmeta[appid_guess]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
-                html_elements = ["<p>", "<br />", "<strong>", "</strong>"]
+                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
@@ -138,12 +138,12 @@ def steam_price(i_string):
         else:
             modules.connection.send_message("No info available for that title")
 
-        # Display the Steam Sore url of the title requested
+        # Display the Steam Store url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
 
     if title_spelling:
         modules.connection.send_message("Exact title not found, you can try:")
-        for item in results[:results_nb]:  # Display X first items
+        for item in results[:results_nb]:  # Display <results_nb> first items
             modules.connection.send_message(item)
 
     if not title_found and not title_spelling:
