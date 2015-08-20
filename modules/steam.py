@@ -127,7 +127,7 @@ def steam_price(i_string):
                 price_about_the_game = steam_appsmeta[appid_guess]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
-                html_elements = ["<p>", "<br />", "<strong>", "</strong>"]
+                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
@@ -138,7 +138,7 @@ def steam_price(i_string):
         else:
             modules.connection.send_message("No info available for that title")
 
-        # Display the Steam Sore url of the title requested
+        # Display the Steam Store url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
 
     if title_spelling:
