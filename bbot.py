@@ -197,7 +197,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!imdb")
             modules.imdb.imdb_info(input_string)
-        except (AttributeError, ValueError):
+        except (AttributeError, ValueError, urllib.error.HTTPError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!imdb")
@@ -221,7 +221,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!money")
             modules.money.money_rate(input_string)
-        except (AttributeError, ValueError):
+        except (AttributeError, ValueError, IndexError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!money")
