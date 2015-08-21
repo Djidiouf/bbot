@@ -42,13 +42,13 @@ import modules.imdb
 #     conf.write(configfile)
 
 # Read config file
-config = configparser.RawConfigParser()
+config = configparser.ConfigParser()
 config.read('config.cfg')
-server = config.get('bot_configuration', 'server')
-channel = config.get('bot_configuration', 'channel')
-botnick = config.get('bot_configuration', 'botnick')
+server = config['bot_configuration']['server']
+channel = config['bot_configuration']['channel']
+botnick = config['bot_configuration']['botnick']
 # admins_list = config.get('bot_configuration', 'admin')
-admins_list = config.get('bot_configuration', 'admins').split(",")
+admins_list = config['bot_configuration']['admins'].split(",")
 
 for each in admins_list:
     print(each)

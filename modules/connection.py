@@ -15,7 +15,7 @@ def send_message(msg):
         :param msg: string needed to be encoded and sent on IRC
         :return:
         """
-        chan = config.get('bot_configuration', 'channel')
+        chan = config['bot_configuration']['channel']
         ircsock.send(bytes("PRIVMSG %s :" % chan + msg + "\r\n", "UTF-8"))
 
 
@@ -32,12 +32,12 @@ def receive_data():
     return a
 
 
-config = configparser.RawConfigParser()
+config = configparser.ConfigParser()
 config.read('config.cfg')
-server = config.get('bot_configuration', 'server')
-channel = config.get('bot_configuration', 'channel')
-botnick = config.get('bot_configuration', 'botnick')
-port = config.getint('bot_configuration', 'port')
+server = config['bot_configuration']['server']
+channel = config['bot_configuration']['channel']
+botnick = config['bot_configuration']['botnick']
+port = int(config['bot_configuration']['port'])
 
 # connection --------------------------------------------------------------------
 # connect to the server
