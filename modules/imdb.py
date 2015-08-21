@@ -50,6 +50,9 @@ def imdb_info(i_string):
         # Separation of id:tt0411008
         tuple_id = part_one.partition(':')
         imdb_id = tuple_id[2]
+        if ' ' in imdb_id:
+            modules.connection.send_message("IMDB IDs don't have any space, ie: tt0411008")
+            return
 
         omdb_url_full_detailed = 'http://www.omdbapi.com/?i=%s&plot=short&r=json' % imdb_id
         omdb_request_api = urllib.request.urlopen(omdb_url_full_detailed).read().decode('utf-8')
