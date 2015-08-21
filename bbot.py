@@ -20,6 +20,7 @@
 import configparser
 import re  # REGEX compiler
 import sys  # system library
+import os
 
 # Project modules
 import modules.steam  # Contains specific Steam-Valve related functions
@@ -43,21 +44,17 @@ import modules.imdb
 
 # Read config file
 config = configparser.ConfigParser()
-config.read('config.cfg')
+config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'config.cfg'))  # Absolute path is better
 server = config['bot_configuration']['server']
 channel = config['bot_configuration']['channel']
 botnick = config['bot_configuration']['botnick']
 # admins_list = config.get('bot_configuration', 'admin')
 admins_list = config['bot_configuration']['admins'].split(",")
 
-for each in admins_list:
-    print(each)
-admin = 'test'
-
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
 user_message = r"(.*)!~(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
-admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
+# admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
 
 # REGEX ###############
 # !help
@@ -81,8 +78,6 @@ op_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!op"
 op_regex = bytes(op_regex, "UTF-8")
 
 # !quit
-quit_regex = admin_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
-quit_regex = bytes(quit_regex, "UTF-8")
 quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
 quit_user_regex = bytes(quit_user_regex, "UTF-8")
 
@@ -141,6 +136,7 @@ def regex_search_arguments(message, expression):
     # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
     arguments = string_searched.group(0)
     return arguments
+
 
 def is_message_from_admin(message):
     is_from_admin = False

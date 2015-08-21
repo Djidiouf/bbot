@@ -3,6 +3,7 @@ __author__ = 'Djidiouf'
 import socket
 import configparser
 import ssl
+import os
 
 # list of SSL ports for IRC
 irc_ssl_ports = [6697, 7070]
@@ -33,7 +34,7 @@ def receive_data():
 
 
 config = configparser.ConfigParser()
-config.read('config.cfg')
+config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..', 'config.cfg'))  # Absolute path is better
 server = config['bot_configuration']['server']
 channel = config['bot_configuration']['channel']
 botnick = config['bot_configuration']['botnick']
