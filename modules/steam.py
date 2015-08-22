@@ -13,6 +13,60 @@ import modules.textalteration
 import modules.connection
 
 
+def get_app_id(i_string):
+    """
+    :param i_string:
+    :return:
+    'Rust'  (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter Pack'))
+    'Rus'   (False, (), ['Runaway, The Dream of The Turtle Trailer', 'RUSE Open Beta', 'Runaway: A Road Adventure'])
+    'zwioq' (False, (), [])
+    """
+    # Main variables
+    nameguess = i_string.lower()
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    # Time variables
+    now = time.time()
+    cache_age = 86400  # 86400 = 24hr
+    m, s = divmod(cache_age, 60)
+    h, m = divmod(m, 60)
+
+    # Condition variables
+    title_found = False
+
+    # Results variables
+    similar_titles = []
+    tup_id = ()
+
+    # Method CACHE: Retrieve and Store local file --------------
+    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
+        os.makedirs(cache_steam_dir)
+    steam_appsid_filename = os.path.join(cache_steam_dir, 'steam_appsid.json')  # Name of the local file
+
+    # Download the file if it doesn't exist or is too old
+    if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
+        modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam titles list ..." % (h, m))
+        urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
+    with open(steam_appsid_filename, encoding="utf8") as steam_appsid_data:
+        steam_appsid = json.load(steam_appsid_data)
+
+    # Read the JSON data file
+    for line in steam_appsid['applist']['apps']['app']:
+        if line['name'].lower() == nameguess:
+            title_found = True
+
+            appid_guess = line['appid']
+            appid_guess = str(appid_guess)
+            nameguess = line['name']  # Ensure that the correct case is displayed in the future
+            tup_id = appid_guess, nameguess
+
+        if line['name'].lower().startswith(nameguess):
+            similar_titles.append(line['name'])  # Add each match to a list
+
+    result = title_found, tup_id, similar_titles
+    return result
+
+
 def steam_price(i_string):
     """
     Responds to a user that inputs "!steamprice <Game Title>"
@@ -30,65 +84,28 @@ def steam_price(i_string):
     # Time variables
     now = time.time()
     cache_age = 86400  # 86400 = 24hr
-    m, s = divmod(cache_age, 60)
-    h, m = divmod(m, 60)
-
-    # Condition variables
-    title_found = False
-    title_spelling = False
 
     # Steam API variables
     country = "fr"
-    appid_guess = 0
 
     # Results variables
     results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
-    results = []
 
+    # Clear Cache
     if nameguess == "@rm-cache":
         shutil.rmtree(cache_steam_dir)
         modules.connection.send_message("Cache has been deleted")
         return  # Use ** return ** if in a function, exit() otherwise
 
-    # Method ONLINE: URL only, no cache ----------------------
-    # url_steam_appsid = request.urlopen('http://api.steampowered.com/ISteamApps/GetAppList/v0001/').read().decode('utf-8')
-    # url_steam_appsid = urllib.request.urlopen('http://lib.openlog.it/steamapi.json').read().decode('utf-8')
-    # steam_appsid = json.loads(url_steam_appsid)
+    # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
+    whatweget = get_app_id(nameguess)
 
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
-    steam_appsid_filename = os.path.join(cache_steam_dir, 'steam_appsid.json')  # Name of the local file
+    if whatweget[0]:
 
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
-        modules.connection.send_message("Data outdated (> %dhr %02dmin), retrieving new Steam titles list ..." % (h, m))
-        urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
-    with open(steam_appsid_filename, encoding="utf8") as steam_appsid_data:
-        steam_appsid = json.load(steam_appsid_data)
+        appid_guess = whatweget[1][0]
+        corrected_name = whatweget[1][1]
 
-    # Read the JSON data file
-    for line in steam_appsid['applist']['apps']['app']:
-        if line['name'].lower() == nameguess:
-            title_found = True
-            title_spelling = False  # Need to set to False in case an approximative match had been made previously
-
-            appid_guess = line['appid']
-            appid_guess = str(appid_guess)
-            corrected_name = line['name']  # Ensure that the correct case is displayed in the future
-            break  # As an exact match has been found, there is no need to go further
-
-        if line['name'].lower().startswith(nameguess):
-            title_spelling = True  # Found at least one approximative match
-            results.append(line['name'])  # Add each match to a list
-
-    if title_found:
         url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (appid_guess, country)
-        # print(webpage)
-
-        # Method ONLINE: URL only, no cache ----------------------
-        # url_steam_appsmeta = urllib.request.urlopen(url_steam_appsmeta).read().decode('utf-8')
-        # steam_appsmeta = json.loads(url_steam_appsmeta)
 
         # Method CACHE: Retrieve and Store local file --------------
         if not os.path.exists(cache_steam_dir):  # Test if the directory exists
@@ -141,10 +158,10 @@ def steam_price(i_string):
         # Display the Steam Store url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
 
-    if title_spelling:
+    elif not whatweget[0] and whatweget[2]:
         modules.connection.send_message("Exact title not found, you can try:")
-        for item in results[:results_nb]:  # Display <results_nb> first items
+        for item in whatweget[2][:results_nb]:  # Display <results_nb> first items
             modules.connection.send_message(item)
 
-    if not title_found and not title_spelling:
+    else:
         modules.connection.send_message("Title not found")
