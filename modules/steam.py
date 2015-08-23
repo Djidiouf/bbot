@@ -45,7 +45,7 @@ def get_app_id(i_string):
 
     # Download the file if it doesn't exist or is too old
     if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
-        modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam titles list ..." % (h, m))
+        modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam apps list ..." % (h, m))
         urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
     with open(steam_appsid_filename, encoding="utf8") as steam_appsid_data:
         steam_appsid = json.load(steam_appsid_data)
@@ -85,10 +85,10 @@ def steam_price(i_string):
     now = time.time()
     cache_age = 86400  # 86400 = 24hr
 
-    # Steam API variables
+    # Steam API variable
     country = "fr"
 
-    # Results variables
+    # Results variable
     results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
 
     # Clear Cache
@@ -101,7 +101,6 @@ def steam_price(i_string):
     whatweget = get_app_id(nameguess)
 
     if whatweget[0]:
-
         appid_guess = whatweget[1][0]
         corrected_name = whatweget[1][1]
 
