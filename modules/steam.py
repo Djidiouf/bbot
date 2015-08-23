@@ -22,7 +22,7 @@ def get_app_id(i_string):
     'zwioq' (False, (), [])
     """
     # Main variables
-    nameguess = i_string.lower()
+    title_requested = i_string.lower()
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
@@ -52,15 +52,15 @@ def get_app_id(i_string):
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
-        if line['name'].lower() == nameguess:
+        if line['name'].lower() == title_requested:
             title_found = True
 
-            appid_guess = line['appid']
-            appid_guess = str(appid_guess)
-            nameguess = line['name']  # Ensure that the correct case is displayed in the future
-            tup_id = appid_guess, nameguess
+            steam_app_id = line['appid']
+            steam_app_id = str(steam_app_id)
+            title_corrected = line['name']  # Ensure that the correct case is displayed in the future
+            tup_id = steam_app_id, title_corrected
 
-        if line['name'].lower().startswith(nameguess):
+        if line['name'].lower().startswith(title_requested):
             similar_titles.append(line['name'])  # Add each match to a list
 
     result = title_found, tup_id, similar_titles
@@ -104,7 +104,7 @@ def steam_price(i_string):
     """
 
     # Main variables
-    nameguess = i_string.lower()
+    title_requested = i_string.lower()
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Steam API variable
@@ -114,29 +114,30 @@ def steam_price(i_string):
     results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
 
     # Clear Cache
-    if nameguess == "@rm-cache":
+    if title_requested == "@rm-cache":
         shutil.rmtree(cache_steam_dir)
         modules.connection.send_message("Cache has been deleted")
         return  # Use ** return ** if in a function, exit() otherwise
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
-    whatweget = get_app_id(nameguess)
+    whatweget = get_app_id(title_requested)
+    is_steamapp_found = whatweget[0]
 
-    if whatweget[0]:
-        appid_guess = whatweget[1][0]
-        corrected_name = whatweget[1][1]
+    if is_steamapp_found:
+        steam_app_id = whatweget[1][0]
+        title_corrected = whatweget[1][1]
 
         # Retrieve all metadata of a specified Steam app
-        steam_appsmeta = get_app_metadata(appid_guess, country_currency)
+        steam_appsmeta = get_app_metadata(steam_app_id, country_currency)
 
         # Test of keys existence
-        if "data" in steam_appsmeta[appid_guess]:
-            if "price_overview" in steam_appsmeta[appid_guess]["data"]:
-                # print(steam_price[appid_guess]["data"]["price_overview"])  # complete price overview
-                price_initial = steam_appsmeta[appid_guess]["data"]["price_overview"]['initial']
-                price_discount = steam_appsmeta[appid_guess]["data"]["price_overview"]['discount_percent']
-                price_final = steam_appsmeta[appid_guess]["data"]["price_overview"]['final']
-                price_currency = steam_appsmeta[appid_guess]["data"]["price_overview"]['currency']
+        if "data" in steam_appsmeta[steam_app_id]:
+            if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
+                # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
+                price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
+                price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
+                price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
+                price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
 
                 price_initial = float(price_initial)
                 price_initial *= 0.01  # Price was given in cents, switch to a more readable format
@@ -144,12 +145,12 @@ def steam_price(i_string):
                 price_final = float(price_final)
                 price_final *= 0.01  # Price was given in cents, switch to a more readable format
 
-                modules.connection.send_message("%s is at %.2f %s " % (corrected_name, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+                modules.connection.send_message("%s is at %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
             else:
                 modules.connection.send_message("No price information for that title")
 
-            if "about_the_game" in steam_appsmeta[appid_guess]["data"]:
-                price_about_the_game = steam_appsmeta[appid_guess]["data"]["about_the_game"]
+            if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
+                price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
                 html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>"]
@@ -157,16 +158,16 @@ def steam_price(i_string):
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
 
-            if "metacritic" in steam_appsmeta[appid_guess]["data"]:
-                price_metacritic_score = steam_appsmeta[appid_guess]["data"]["metacritic"]["score"]
+            if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
+                price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
                 modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
         else:
             modules.connection.send_message("No info available for that title")
 
         # Display the Steam Store url of the title requested
-        modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % appid_guess)
+        modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
 
-    elif not whatweget[0] and whatweget[2]:
+    elif not is_steamapp_found and whatweget[2]:
         modules.connection.send_message("Exact title not found, you can try:")
         for item in whatweget[2][:results_nb]:  # Display <results_nb> first items
             modules.connection.send_message(item)
