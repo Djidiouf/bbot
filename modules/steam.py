@@ -47,8 +47,8 @@ def get_app_id(i_string):
     if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
         modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam apps list ..." % (h, m))
         urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
-    with open(steam_appsid_filename, encoding="utf8") as steam_appsid_data:
-        steam_appsid = json.load(steam_appsid_data)
+    with open(steam_appsid_filename, encoding="utf8") as f:
+        steam_appsid = json.load(f)
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
@@ -67,6 +67,32 @@ def get_app_id(i_string):
     return result
 
 
+def get_app_metadata(steam_id, cc_code):
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    # Time variables
+    now = time.time()
+    cache_age = 86400  # 86400 = 24hr
+
+    url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (steam_id, cc_code)
+
+    # Method CACHE: Retrieve and Store local file --------------
+    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
+        os.makedirs(cache_steam_dir)
+    steam_appsmeta_filename = 'steam_appsmeta_%s.json' % steam_id
+    steam_appsmeta_filename = os.path.join(cache_steam_dir, steam_appsmeta_filename)  # Name of the local file
+
+    # Download the file if it doesn't exist or is too old
+    if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - cache_age):
+        modules.connection.send_message("Title found (%s), retrieving last metadata ..." % steam_id)
+        urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
+
+    with open(steam_appsmeta_filename, encoding="utf8") as f:
+        steam_appsmeta = json.load(f)
+
+    return steam_appsmeta
+
+
 def steam_price(i_string):
     """
     Responds to a user that inputs "!steamprice <Game Title>"
@@ -81,12 +107,8 @@ def steam_price(i_string):
     nameguess = i_string.lower()
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
-
     # Steam API variable
-    country = "fr"
+    country_currency = "fr"
 
     # Results variable
     results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
@@ -104,21 +126,8 @@ def steam_price(i_string):
         appid_guess = whatweget[1][0]
         corrected_name = whatweget[1][1]
 
-        url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (appid_guess, country)
-
-        # Method CACHE: Retrieve and Store local file --------------
-        if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-            os.makedirs(cache_steam_dir)
-        steam_appsmeta_filename = 'steam_appsmeta%s.json' % appid_guess
-        steam_appsmeta_filename = os.path.join(cache_steam_dir, steam_appsmeta_filename)  # Name of the local file
-
-        # Download the file if it doesn't exist or is too old
-        if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - cache_age):
-            modules.connection.send_message("Title found (%s), retrieving last metadata ..." % appid_guess)
-            urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
-
-        with open(steam_appsmeta_filename, encoding="utf8") as steam_appsmeta_data:
-            steam_appsmeta = json.load(steam_appsmeta_data)
+        # Retrieve all metadata of a specified Steam app
+        steam_appsmeta = get_app_metadata(appid_guess, country_currency)
 
         # Test of keys existence
         if "data" in steam_appsmeta[appid_guess]:
