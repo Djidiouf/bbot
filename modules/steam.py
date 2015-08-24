@@ -7,6 +7,7 @@ import json  # Library for being able to read Json file
 import time  # anti flood if needed: time.sleep(2)
 import os       # For instruction related to the OS
 import shutil   # Used for OS tools
+import configparser
 
 # Project modules
 import modules.textalteration
@@ -67,6 +68,36 @@ def get_app_id(i_string):
     return result
 
 
+def get_player_id(i_string, steam_api_key):
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    # Time variables
+    now = time.time()
+    cache_age = 86400  # 86400 = 24hr
+
+    url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % (steam_api_key, i_string)
+
+    # Method CACHE: Retrieve and Store local file --------------
+    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
+        os.makedirs(cache_steam_dir)
+    steam_player_id_filename = 'steam_player_id_%s.json' % i_string
+    steam_player_id_filename = os.path.join(cache_steam_dir, steam_player_id_filename)  # Name of the local file
+
+    # Download the file if it doesn't exist or is too old
+    if not os.path.isfile(steam_player_id_filename) or os.stat(steam_player_id_filename).st_mtime < (now - cache_age):
+        modules.connection.send_message("Retrieving ID for player %s ..." % i_string)
+        urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_id_filename)
+
+    with open(steam_player_id_filename, encoding="utf8") as f:
+        steam_player_id = json.load(f)
+
+    if "steamid" in steam_player_id["response"]:
+        player_id = steam_player_id["response"]["steamid"]
+        return player_id
+    else:
+        modules.connection.send_message("ID not found for player %s ..." % i_string)
+        return
+
 def get_app_metadata(steam_id, cc_code):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
@@ -91,6 +122,32 @@ def get_app_metadata(steam_id, cc_code):
         steam_appsmeta = json.load(f)
 
     return steam_appsmeta
+
+
+def get_owned_games(player_id, steam_api_key):
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    # Time variables
+    now = time.time()
+    cache_age = 86400  # 86400 = 24hr
+
+    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s' % (steam_api_key, player_id)
+
+    # Method CACHE: Retrieve and Store local file --------------
+    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
+        os.makedirs(cache_steam_dir)
+    steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
+    steam_player_meta_filename = os.path.join(cache_steam_dir, steam_player_meta_filename)  # Name of the local file
+
+    # Download the file if it doesn't exist or is too old
+    if not os.path.isfile(steam_player_meta_filename) or os.stat(steam_player_meta_filename).st_mtime < (now - cache_age):
+        modules.connection.send_message("Player found (%s), retrieving last metadata ..." % player_id)
+        urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_meta_filename)
+
+    with open(steam_player_meta_filename, encoding="utf8") as f:
+        steam_player_meta = json.load(f)
+
+    return steam_player_meta
 
 
 def steam_price(i_string):
@@ -120,12 +177,12 @@ def steam_price(i_string):
         return  # Use ** return ** if in a function, exit() otherwise
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
-    whatweget = get_app_id(title_requested)
-    is_steamapp_found = whatweget[0]
+    app_id_details = get_app_id(title_requested)
+    is_steamapp_found = app_id_details[0]
 
     if is_steamapp_found:
-        steam_app_id = whatweget[1][0]
-        title_corrected = whatweget[1][1]
+        steam_app_id = app_id_details[1][0]
+        title_corrected = app_id_details[1][1]
 
         # Retrieve all metadata of a specified Steam app
         steam_appsmeta = get_app_metadata(steam_app_id, country_currency)
@@ -167,10 +224,31 @@ def steam_price(i_string):
         # Display the Steam Store url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
 
-    elif not is_steamapp_found and whatweget[2]:
+    elif not is_steamapp_found and app_id_details[2]:
         modules.connection.send_message("Exact title not found, you can try:")
-        for item in whatweget[2][:results_nb]:  # Display <results_nb> first items
+        for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
             modules.connection.send_message(item)
 
     else:
         modules.connection.send_message("Title not found")
+
+
+def player_owns_game(i_string):
+    tuple_string = i_string.partition(' ')
+    player_name = tuple_string[0]
+    title_requested = tuple_string[2]
+
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..', 'config.cfg'))  # Absolute path is better
+    steam_api_key = config['API_keys']['steam']
+
+    # Retrieve player ID
+    player_id_details = get_player_id(player_name, steam_api_key)
+
+    # Retrieve steam app ID
+    app_id_details = get_app_id(title_requested)
+    is_steamapp_found = app_id_details[0]
+
+    if is_steamapp_found:
+        steam_app_id = app_id_details[1][0]
+        title_corrected = app_id_details[1][1]
