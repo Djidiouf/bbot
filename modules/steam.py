@@ -95,7 +95,7 @@ def get_player_id(i_string, steam_api_key):
         player_id = steam_player_id["response"]["steamid"]
         return player_id
     else:
-        modules.connection.send_message("ID not found for player %s ..." % i_string)
+        modules.connection.send_message("ID not found for player %s" % i_string)
         return
 
 def get_app_metadata(steam_id, cc_code):
