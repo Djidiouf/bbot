@@ -42,7 +42,6 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
     Someone: !time Australia/Sydney
     TheBot : 2015-08-05 - 10:28:04 - AEST+1000 - Australia/Sydney
 
-
 ````!time bchat```` Special command that you can change in order to give you specific timezones at once
 
     Someone: !time bchat
@@ -69,6 +68,21 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
     TheBot : 15.50 EUR = 23.09 AUD
 
 
+#### !steamown
+````!steamown <Player> <Title>```` Tell if a player owns a specific title
+
+    Someone: !steamown djidiouf Planetary Annihilation
+    TheBot : djidiouf owns Planetary Annihilation and has played for 36hr 19min
+
+````!steamown <Player> <Title>```` If an exact match hasn't been found, 3 potential results will be displayed.
+
+    Someone: !steamown Djidiouf Planetary
+    TheBot : Exact title not found, you can try:
+    TheBot : Planetary Annihilation
+    TheBot : Planetary Annihilation - Digital Deluxe Bundle
+    TheBot : Planetary Annihilation - Original Soundtrack
+
+
 #### !steamprice
 ````!steamprice <Title>```` Retrieve data info about a specific Title.
 
@@ -79,7 +93,6 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
     TheBot : About: Cities: Skylines is a modern take on the classic city simulation. The game introduces new game play elements to realize the thrill [...]
     TheBot : Metacritic: 86
     TheBot : SteamStore: http://store.steampowered.com/app/255710?cc=fr
-
 
 ````!steamprice <Title>```` If an exact match hasn't been found, 3 potential results will be displayed.
 
@@ -94,6 +107,7 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
     Someone: !steamprice @rm-cache
     TheBot : Cache has been deleted
     
+
 #### !imdb
 ````!imdb <Guessed Title>```` Retrieve data info about a movie / TV show.
 
@@ -117,6 +131,7 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
     TheBot : USA - 22 min - Comedy
     TheBot : Plot: A mockumentary on a group of typical office workers, where the workday consists of ego clashes, inappropriate behavior, and tedium. Based on the hit BBC series.
     TheBot : imdbID: tt0386676 - Rating: 8.8
+
 
 ### Version
 0.1

@@ -93,6 +93,10 @@ say_private_regex = bytes(say_private_regex, "UTF-8")
 steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
 steamprice_regex = bytes(steamprice_regex, "UTF-8")
 
+# !steamown
+steamown_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamown"
+steamown_regex = bytes(steamown_regex, "UTF-8")
+
 # !time
 time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
 time_regex = bytes(time_regex, "UTF-8")
@@ -253,6 +257,16 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!say")
+
+    # !steamown <player> <Game>
+    if re.search(steamown_regex, ircmsg, re.IGNORECASE):
+        try:
+            input_string = regex_search_arguments(ircmsg, "!steamown")
+            modules.steam.player_owns_game(input_string)
+        except (AttributeError, ValueError):
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!steamown")
 
     # !steamprice <Game Title>
     if re.search(steamprice_regex, ircmsg, re.IGNORECASE):
