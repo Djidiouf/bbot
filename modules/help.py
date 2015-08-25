@@ -7,7 +7,7 @@ import modules.connection
 def print_help_help():
     modules.connection.send_message("Usage: !help [handler]")
     modules.connection.send_message("Known handlers:")
-    modules.connection.send_message("!help !imdb !meet !money !quit !say !steamown !steamprice !time")
+    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !steamown !steamprice !time")
 
 
 def display_help(i_string):
@@ -36,6 +36,9 @@ def display_help(i_string):
         modules.connection.send_message("Usage: !say <something>")
         modules.connection.send_message("Purpose: Make me speak!")
         modules.connection.send_message("Tip: Be smart and /msg myname the command")
+    elif i_string == "!steam":
+        modules.connection.send_message("Usage: !steam <Admin Command>")
+        modules.connection.send_message("Purpose: Let do super-things")
     elif i_string == "!steamown":
         modules.connection.send_message("Usage: !steamown <player> <Game>")
         modules.connection.send_message("Purpose: Tell if someone owns a specific game")

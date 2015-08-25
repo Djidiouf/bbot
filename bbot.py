@@ -89,13 +89,17 @@ say_regex = bytes(say_regex, "UTF-8")
 say_private_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
 say_private_regex = bytes(say_private_regex, "UTF-8")
 
-# !steamprice
-steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
-steamprice_regex = bytes(steamprice_regex, "UTF-8")
+# !steam
+steam_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steam"
+steam_regex = bytes(steam_regex, "UTF-8")
 
 # !steamown
 steamown_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamown"
 steamown_regex = bytes(steamown_regex, "UTF-8")
+
+# !steamprice
+steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
+steamprice_regex = bytes(steamprice_regex, "UTF-8")
 
 # !time
 time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
@@ -257,6 +261,16 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!say")
+
+    # !steam <admin command>
+    if re.search(steam_regex, ircmsg, re.IGNORECASE):
+        try:
+            input_string = regex_search_arguments(ircmsg, "!steam")
+            modules.steam.steam(input_string)
+        except (AttributeError, ValueError):
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!steam")
 
     # !steamown <player> <Game>
     if re.search(steamown_regex, ircmsg, re.IGNORECASE):

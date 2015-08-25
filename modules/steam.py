@@ -169,6 +169,14 @@ def get_owned_games(player_id, steam_api_key):
 
     return steam_player_meta
 
+def steam(i_string):
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    if i_string.lower() == "@rm-cache":
+        shutil.rmtree(cache_steam_dir)
+        modules.connection.send_message("Cache has been deleted")
+        return  # Use ** return ** if in a function, exit() otherwise
+
 
 def steam_price(i_string):
     """
@@ -182,19 +190,12 @@ def steam_price(i_string):
 
     # Main variables
     title_requested = i_string.lower()
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Steam API variable
     country_currency = "fr"
 
     # Results variable
     results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
-
-    # Clear Cache
-    if title_requested == "@rm-cache":
-        shutil.rmtree(cache_steam_dir)
-        modules.connection.send_message("Cache has been deleted")
-        return  # Use ** return ** if in a function, exit() otherwise
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
     app_id_details = get_app_id(title_requested)
