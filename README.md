@@ -64,8 +64,7 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
 ````!money <amount> <CODE1>:<CODE2>```` Convert an amount from one currency to another
 
     Someone: !money 15.5 EUR:AUD
-    TheBot : Rate: 1 EUR = 1.4894 AUD
-    TheBot : 15.50 EUR = 23.09 AUD
+    TheBot : 15.50 EUR = 23.09 AUD (1 EUR = 1.4894 AUD)
 
 
 #### !steamown

@@ -73,6 +73,7 @@ def get_app_id(i_string):
 def get_player_id(i_string, steam_api_key):
     """
     Retrieve the ID of a steam player from Steam API
+    Using: http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=XXX&vanityurl=username
     :param i_string:
     :param steam_api_key:
     :return:
