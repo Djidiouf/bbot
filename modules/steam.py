@@ -16,8 +16,10 @@ import modules.connection
 
 def get_app_id(i_string):
     """
+    Get the ID of a steam title from Steam API
     :param i_string:
-    :return:
+    :return: if the title has been found, the ID, the correct title, a list of approximative titles
+    INPUT   OUTPUT
     'Rust'  (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter Pack'))
     'Rus'   (False, (), ['Runaway, The Dream of The Turtle Trailer', 'RUSE Open Beta', 'Runaway: A Road Adventure'])
     'zwioq' (False, (), [])
@@ -69,6 +71,12 @@ def get_app_id(i_string):
 
 
 def get_player_id(i_string, steam_api_key):
+    """
+    Retrieve the ID of a steam player from Steam API
+    :param i_string:
+    :param steam_api_key:
+    :return:
+    """
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
@@ -95,10 +103,16 @@ def get_player_id(i_string, steam_api_key):
         player_id = steam_player_id["response"]["steamid"]
         return player_id
     else:
-        modules.connection.send_message("ID not found for player %s ..." % i_string)
+        modules.connection.send_message("ID not found for player %s" % i_string)
         return
 
 def get_app_metadata(steam_id, cc_code):
+    """
+    Retrieve the metadata of a title from the Steam API
+    :param steam_id:
+    :param cc_code:
+    :return:
+    """
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
@@ -125,6 +139,12 @@ def get_app_metadata(steam_id, cc_code):
 
 
 def get_owned_games(player_id, steam_api_key):
+    """
+    Retrieve the list of title owned by a player from the Steam API
+    :param player_id:
+    :param steam_api_key:
+    :return:
+    """
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
@@ -149,6 +169,14 @@ def get_owned_games(player_id, steam_api_key):
 
     return steam_player_meta
 
+def steam(i_string):
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    if i_string.lower() == "@rm-cache":
+        shutil.rmtree(cache_steam_dir)
+        modules.connection.send_message("Cache has been deleted")
+        return  # Use ** return ** if in a function, exit() otherwise
+
 
 def steam_price(i_string):
     """
@@ -162,19 +190,12 @@ def steam_price(i_string):
 
     # Main variables
     title_requested = i_string.lower()
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Steam API variable
     country_currency = "fr"
 
     # Results variable
     results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
-
-    # Clear Cache
-    if title_requested == "@rm-cache":
-        shutil.rmtree(cache_steam_dir)
-        modules.connection.send_message("Cache has been deleted")
-        return  # Use ** return ** if in a function, exit() otherwise
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
     app_id_details = get_app_id(title_requested)
@@ -234,6 +255,11 @@ def steam_price(i_string):
 
 
 def player_owns_game(i_string):
+    """
+    Responds to a user that inputs "!steamown <Player name> <Game Title>"
+    :param i_string:
+    :return:
+    """
     tuple_string = i_string.partition(' ')
     player_name = tuple_string[0]
     title_requested = tuple_string[2]
