@@ -1,10 +1,11 @@
 # bbot
 bbot is an advanced IRC bot with fancy answers and features
 
+
 ## Installation
 Platforms: Windows, MacOSX, Linux
 
-Prerequisite: [Python 3.4](https://www.python.org/)
+Prerequisite: [Python 3.4](https://www.python.org/), pytz library (````pip install pytz````)
 
 Download bbot by clicking on [Download ZIP](https://github.com/Djidiouf/bbot/archive/master.zip), or do a git clone.
 
@@ -20,6 +21,7 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
     botnick = bbot
     port = 6667
     admins = You,Him
+
 
 ### Features
 
@@ -64,8 +66,7 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
 ````!money <amount> <CODE1>:<CODE2>```` Convert an amount from one currency to another
 
     Someone: !money 15.5 EUR:AUD
-    TheBot : Rate: 1 EUR = 1.4894 AUD
-    TheBot : 15.50 EUR = 23.09 AUD
+    TheBot : 15.50 EUR = 23.09 AUD (1 EUR = 1.4894 AUD)
 
 
 #### !steamown
@@ -136,17 +137,21 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
 ### Version
 0.1
 
+
 ### Tech
 bbot is made in:
 
 * Python - 3.4.3
 
+
 ### Development
 Want to contribute? Great! But don't do it now, wait for the Release.
+
 
 ### Todo's
 * more features
 * other things
+
 
 ### License
 Something

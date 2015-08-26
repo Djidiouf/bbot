@@ -42,8 +42,8 @@ def money_rate(i_string):
     webpage = urllib.request.urlopen(url)
 
     rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
-    modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
-
     total = amount * rate
-    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
+    # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
+    # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
+    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate, code2))
     webpage.close()
