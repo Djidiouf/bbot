@@ -21,9 +21,9 @@ def display_help(i_string):
         modules.connection.send_message("Purpose: Give information about a movie / TV serie")
         modules.connection.send_message("Tip: Title you enter is a guessed title, specify the year for more accuracy")
     elif i_string == "!meet":
-        modules.connection.send_message("Usage: !meet utc <HH:MM>")
+        modules.connection.send_message("Usage: !meet <TimeZone> <HH:MM>")
         modules.connection.send_message("Purpose: Give the equivalence of the specified time input in several time zones")
-        modules.connection.send_message("Tip: Only utc time zone works at this moment")
+        modules.connection.send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
     elif i_string == "!money":
         modules.connection.send_message("Usage: !money <number> <CODE1>:<CODE2>")
         modules.connection.send_message("Purpose: Convert an amount from one currency to another")
@@ -48,7 +48,7 @@ def display_help(i_string):
         modules.connection.send_message("Purpose: Give the price of the given Steam game")
         modules.connection.send_message("Tip: Title must be exact")
     elif i_string == "!time":
-        modules.connection.send_message("Usage: !time <time_zones>")
+        modules.connection.send_message("Usage: !time <TimeZone>")
         modules.connection.send_message("Purpose: Give the time in the specified time zone")
         modules.connection.send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
     else:

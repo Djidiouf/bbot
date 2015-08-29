@@ -220,10 +220,6 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!meet")
 
-    # !op REGEX
-    if re.search(op_regex, ircmsg, re.IGNORECASE):
-        modules.connection.send_message("Nice try!")
-
     # !money <number> <CODE1>:<CODE2>
     if re.search(money_regex, ircmsg, re.IGNORECASE):
         try:
@@ -233,6 +229,10 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!money")
+
+    # !op REGEX
+    if re.search(op_regex, ircmsg, re.IGNORECASE):
+        modules.connection.send_message("Nice try!")
 
     # !quit REGEX
     if re.search(quit_user_regex, ircmsg, re.IGNORECASE):
