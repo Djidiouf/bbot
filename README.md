@@ -53,12 +53,12 @@ Rename the config_example.cfg to config.cfg and change these 5 variables under [
 
 
 #### !meet
-````!meet utc <HH:MM>```` Allow to see the specified UTC time given in specific timezones
+````!meet <time_zone> <HH:MM>```` Allow to see one <time_zone> given in specific timezones
 
     Someone: !meet utc 10:00
     TheBot : 2015-08-06 - 10:00:00 - UTC+0000 - UTC
     TheBot : 2015-08-06 - 11:00:00 - BST+0100 - Europe/London
-    TheBot : 2015-08-06 - 12:00:00 - CEST+0200 - Europe/Stockholm
+    TheBot : 2015-08-06 - 12:00:00 - CEST+0200 - Europe/Oslo
     TheBot : 2015-08-06 - 20:00:00 - AEST+1000 - Australia/Sydney
 
 
