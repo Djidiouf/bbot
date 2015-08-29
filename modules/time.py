@@ -56,7 +56,7 @@ def give_hour_equivalence(i_string):
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
     tuple_string = i_string.partition(' ')
-    tz = tuple_string[0]
+    tz_requested = tuple_string[0]
     time_string = tuple_string[2]
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
@@ -64,33 +64,78 @@ def give_hour_equivalence(i_string):
     simple_hour = tuple_time[0]
     simple_minute = tuple_time[2]
 
-    # hour and minute need to be int and not string
-    hour = int(simple_hour)
-    minute = int(simple_minute)
-
     try:
-        tzinfo1 = pytz.timezone(tz)
+        tz_requested = pytz.timezone(tz_requested)
     except pytz.exceptions.UnknownTimeZoneError:
         modules.connection.send_message("Timezone not found, don't forget to capitalize it: Europe/Oslo")
         return
 
-    time_utc = datetime.now(tzinfo1)
-    year = datetime.now(tzinfo1).year
-    month = datetime.now(tzinfo1).month
-    day = datetime.now(tzinfo1).day
+    # UTC detailed
+    # time_utc = datetime.now(pytz.utc)
+    # modules.connection.send_message("DEBUG UTC: " + time_utc.strftime(format))
+    year_utc = datetime.now(pytz.utc).year
+    month_utc = datetime.now(pytz.utc).month
+    day_utc = datetime.now(pytz.utc).day
+    hour_utc = datetime.now(pytz.utc).hour
+    minute_utc = datetime.now(pytz.utc).minute
+    hour = int(simple_hour)      # Need to be int and not string
+    minute = int(simple_minute)  # Need to be int and not string
 
-    modules.connection.send_message(datetime(year, month, day, hour, minute, 0, 0, tzinfo1).strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo1)
-    delta = datetime(year, month, day, hour, minute, 0, 0, tzinfo1) - time_utc
-    # DEBUG modules.messages.Message(config.channel).send_message("Delta is: " + str(delta))
+    format = "%Y-%m-%d - %H:%M:%S - %Z%z"
 
-    tzinfo_london = pytz.timezone('Europe/London')
-    time_utc = datetime.now(tzinfo_london) + delta
-    modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_london)
+    # modules.connection.send_message("DEBUG req: " + str(hour) +"H : " + str(minute) + "M")
+    # modules.connection.send_message("DEBUG utc: " + str(hour_utc) +"H : " + str(minute_utc) + "M")
 
-    tzinfo_stockholm = pytz.timezone('Europe/Stockholm')
-    time_utc = datetime.now(tzinfo_stockholm) + delta
-    modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_stockholm)
+    # hour_diff = hour - hour_utc
+    # minute_diff = minute - minute_utc
+    # modules.connection.send_message("DEBUG diff: " + str(hour_diff) +"H : " + str(minute_diff) + "M")
 
-    tzinfo_sydney = pytz.timezone('Australia/Sydney')
-    time_utc = datetime.now(tzinfo_sydney) + delta
-    modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tzinfo_sydney)
+    hour_req = datetime.now(tz_requested).hour
+    minute_req = datetime.now(tz_requested).minute
+    decal_h = hour_req - hour_utc
+    decal_m = minute_req - minute_utc
+    # modules.connection.send_message("DEBUG decalageH: " + str(hour_req) + " - " + str(hour_utc) + " = " + str(decal_h))
+    # modules.connection.send_message("DEBUG decalageM: " + str(minute_req) + " - " + str(minute_utc) + " = " + str(decal_m))
+
+    hour_new = hour-decal_h
+    minute_new = minute-decal_m
+
+    # print("hour_new  : " + str(hour_new))
+    # print("minute_new: " + str(minute_new))
+
+    if hour_new < 0:
+        hour_new += 24
+        # print("---- hour_new +24")
+    if hour_new == 24:
+        hour_new = 0
+    if hour_new > 24:
+        hour_new -= 24
+        # print("---- hour_new -24")
+    if minute_new == 60:
+        minute_new = 0
+        hour_new += 1
+        # print("---- hour_new +1")
+    if minute_new > 60:
+        minute_new -= 60
+        hour_new += 1
+        # print("---- hour_new +1")
+    if minute_new < 0:
+        minute_new += 60
+        hour_new -= 1
+        # print("---- hour_new -1")
+
+    # print("hour_new revised: " + str(hour_new))
+    # print("minute_new revis: " + str(minute_new))
+
+    time_requested = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(str(tz_requested)))
+    modules.connection.send_message(time_requested.strftime(format) + " - %s" % str(tz_requested))
+
+    tz_one = "Europe/London"
+    tz_two = "Europe/Oslo"
+    tz_three = "Australia/Sydney"
+    time_one = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_one))
+    modules.connection.send_message(time_one.strftime(format) + " - %s" % tz_one)
+    time_two = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_two))
+    modules.connection.send_message(time_two.strftime(format) + " - %s" % tz_two)
+    time_three = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_three))
+    modules.connection.send_message(time_three.strftime(format) + " - %s" % tz_three)
