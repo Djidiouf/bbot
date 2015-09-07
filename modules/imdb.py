@@ -15,7 +15,7 @@ def imdb_info(i_string):
     Responds to a user that inputs:
                                     "!imdb <Guessed Title>"
                                     "!imdb <Guessed Title>#<Year>"
-                                    "!imdb i:<imdbID>"
+                                    "!imdb id:<imdbID>"
 
     using The Open Movie Database API: http://www.omdbapi.com
 
@@ -84,5 +84,6 @@ def imdb_info(i_string):
             movie_imdbid = omdb_json["imdbID"]
             movie_imdbrating = omdb_json["imdbRating"]
             modules.connection.send_message("imdbID: %s - Rating: %s" % (movie_imdbid, movie_imdbrating))
+            modules.connection.send_message("http://www.imdb.com/title/%s/" % (movie_imdbid))
     else:
         modules.connection.send_message("IMDB title not found!")
