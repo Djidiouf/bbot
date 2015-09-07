@@ -15,7 +15,7 @@ def imdb_info(i_string):
     Responds to a user that inputs:
                                     "!imdb <Guessed Title>"
                                     "!imdb <Guessed Title>#<Year>"
-                                    "!imdb i:<imdbID>"
+                                    "!imdb id:<imdbID>"
 
     using The Open Movie Database API: http://www.omdbapi.com
 
