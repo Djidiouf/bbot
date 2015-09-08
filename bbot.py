@@ -139,7 +139,7 @@ def regex_coder(message, expression, convention):
 
 def regex_search_arguments(message, expression):
     decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
-    arguments_regex = "(?<=" + re.escape(expression) + ")(.*)"
+    arguments_regex = '(?<=' + re.escape(expression) + ' )(.*)'
     string_searched = re.search(arguments_regex, decoded_ircmsg, re.IGNORECASE)
     # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
     arguments = string_searched.group(0)
@@ -270,7 +270,7 @@ while 1:  # infinite loop
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
-            modules.help.display_help("!steam")
+            #modules.help.display_help("!steam")
 
     # !steamown <player> <Game>
     if re.search(steamown_regex, ircmsg, re.IGNORECASE):
