@@ -127,8 +127,8 @@ def give_hour_equivalence(i_string):
     # print("hour_new revised: " + str(hour_new))
     # print("minute_new revis: " + str(minute_new))
 
-    time_requested = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(str(tz_requested)))
-    modules.connection.send_message(time_requested.strftime(format) + " - %s" % str(tz_requested))
+    # time_requested = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(str(tz_requested)))
+    # modules.connection.send_message(time_requested.strftime(format) + " - %s" % str(tz_requested))
 
     tz_one = "Europe/London"
     tz_two = "Europe/Oslo"
