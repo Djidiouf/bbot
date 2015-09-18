@@ -2,7 +2,6 @@ __author__ = 'Djidiouf'
 
 # Python built-in modules
 import urllib.request  # Open url request on website
-import urllib.request  # Open url request on website
 import json  # Library for being able to read Json file
 import time  # anti flood if needed: time.sleep(2)
 import os       # For instruction related to the OS
