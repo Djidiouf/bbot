@@ -14,7 +14,6 @@ def get_ytchannel_metadata(i_string, ytdata_api_key):
 
     url = 'https://www.googleapis.com/youtube/v3/channels?part=statistics&id=%s&key=%s' % (i_string, ytdata_api_key)
 
-    print(url)
     ytchannel_metadata = urllib.request.urlopen(url)
     ytchannel_metadata = ytchannel_metadata.read().decode('utf-8')
     ytchannel_json = json.loads(ytchannel_metadata)
@@ -23,10 +22,11 @@ def get_ytchannel_metadata(i_string, ytdata_api_key):
         if "statistics" in ytchannel_json["items"][0]:
             view_count = ytchannel_json["items"][0]["statistics"]['viewCount']
             video_count = ytchannel_json["items"][0]["statistics"]['videoCount']
-            subscriber_count = ytchannel_json["items"][0]["statistics"]['subscriberCount']
+            sub_count = ytchannel_json["items"][0]["statistics"]['subscriberCount']
 
-            modules.connection.send_message("Videos: %s - Views: %s" % (video_count, view_count))
-            modules.connection.send_message("Subs: %s" % subscriber_count)
+            modules.connection.send_message("Videos: %s - Views: %s - Subs: %s" % (video_count, view_count, sub_count))
+
+            modules.connection.send_message("Channel: https://www.youtube.com/channel/%s" % i_string)
 
 
 def main(i_string):
