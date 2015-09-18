@@ -309,10 +309,10 @@ while 1:  # infinite loop
 
     # !yt <ChannelID>
     if re.search(yt_regex, ircmsg, re.IGNORECASE):
-        #try:
+        try:
             input_string = regex_search_arguments(ircmsg, "!yt")
             modules.youtube.main(input_string)
-        #except (AttributeError, ValueError):
-        #    error = sys.exc_info()[0]
-        #    print("Error: %s" % error)
-        #    modules.help.display_help("!time")
+        except (AttributeError, ValueError):
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
+            modules.help.display_help("!yt")

@@ -7,7 +7,7 @@ import modules.connection
 def print_help_help():
     modules.connection.send_message("Usage: !help [handler]")
     modules.connection.send_message("Known handlers:")
-    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !steamown !steamprice !time")
+    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !steamown !steamprice !time !yt")
 
 
 def display_help(i_string):
@@ -51,5 +51,8 @@ def display_help(i_string):
         modules.connection.send_message("Usage: !time <TimeZone>")
         modules.connection.send_message("Purpose: Give the time in the specified time zone")
         modules.connection.send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
+    elif i_string == "!yt":
+        modules.connection.send_message("Usage: !yt <Display name or ID>")
+        modules.connection.send_message("Purpose: Give metadata about a YouTube Channel")
     else:
         print_help_help()
