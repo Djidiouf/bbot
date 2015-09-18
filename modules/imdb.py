@@ -37,9 +37,7 @@ def imdb_info(i_string):
         # Parse of the arguments needed for movies with accents
         omdb_url_half_detailed = "t=%s&y=%s&plot=short&r=json" % ((urllib.parse.quote(part_one),part_two))
         omdb_request_api = urllib.request.urlopen("http://www.omdbapi.com/?" + omdb_url_half_detailed)
-
         omdb_request_api = omdb_request_api.read().decode('utf-8')
-
         omdb_json = json.loads(omdb_request_api)
 
 

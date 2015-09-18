@@ -30,6 +30,7 @@ import modules.speak
 import modules.connection
 import modules.help
 import modules.imdb
+import modules.youtube
 
 
 # conf = configparser.RawConfigParser()
@@ -104,6 +105,10 @@ steamprice_regex = bytes(steamprice_regex, "UTF-8")
 # !time
 time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
 time_regex = bytes(time_regex, "UTF-8")
+
+# !yt
+yt_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!yt"
+yt_regex = bytes(yt_regex, "UTF-8")
 
 
 def regex_coder(message, expression, convention):
@@ -301,3 +306,13 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             print("Error: %s" % error)
             modules.help.display_help("!time")
+
+    # !yt <ChannelID>
+    if re.search(yt_regex, ircmsg, re.IGNORECASE):
+        #try:
+            input_string = regex_search_arguments(ircmsg, "!yt")
+            modules.youtube.main(input_string)
+        #except (AttributeError, ValueError):
+        #    error = sys.exc_info()[0]
+        #    print("Error: %s" % error)
+        #    modules.help.display_help("!time")
