@@ -91,8 +91,8 @@ say_private_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r
 say_private_regex = bytes(say_private_regex, "UTF-8")
 
 # !steam
-steam_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steam"
-steam_regex = bytes(steam_regex, "UTF-8")
+steamadmin_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamadmin"
+steamadmin_regex = bytes(steamadmin_regex, "UTF-8")
 
 # !steamown
 steamown_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamown"
@@ -267,15 +267,15 @@ while 1:  # infinite loop
             print("Error: %s" % error)
             modules.help.display_help("!say")
 
-    # !steam <admin command>
-    if re.search(steam_regex, ircmsg, re.IGNORECASE):
+    # !steamadmin <admin command>
+    if re.search(steamadmin_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!steam")
+            input_string = regex_search_arguments(ircmsg, "!steamadmin")
             modules.steam.steam(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)
-            #modules.help.display_help("!steam")
+            modules.help.display_help("!steamadmin")
 
     # !steamown <player> <Game>
     if re.search(steamown_regex, ircmsg, re.IGNORECASE):
