@@ -54,7 +54,7 @@ admins_list = config['bot_configuration']['admins'].split(",")
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
-user_message = r"(.*)!~(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
+user_message = r"(.*)!(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
 # admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
 
 # REGEX ###############
