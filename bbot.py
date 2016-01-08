@@ -301,7 +301,7 @@ while 1:  # infinite loop
     if re.search(time_regex, ircmsg, re.IGNORECASE):
         try:
             input_string = regex_search_arguments(ircmsg, "!time")
-            modules.time.give_time(input_string)
+            modules.time.main(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
             print("Error: %s" % error)

@@ -50,7 +50,8 @@ def display_help(i_string):
     elif i_string == "!time":
         modules.connection.send_message("Usage: !time <TimeZone>")
         modules.connection.send_message("Purpose: Give the time in the specified time zone")
-        modules.connection.send_message("Tip: Valid time zones: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones")
+        modules.connection.send_message("Tip: Get valid timezones of a country with: !time <two-letter-country-code>")
+        modules.connection.send_message("---- Countries' codes: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2")
     elif i_string == "!yt":
         modules.connection.send_message("Usage: !yt <Display name or ID>")
         modules.connection.send_message("Purpose: Give metadata about a YouTube Channel")

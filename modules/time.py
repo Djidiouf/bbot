@@ -2,12 +2,28 @@ __author__ = 'Djidiouf'
 
 # Python built-in modules
 from datetime import datetime  # displaying date and time
+import re # REGEX compiler
 
 # Third-party modules
 import pytz  # timezone information
 
 # Project modules
 import modules.connection
+
+
+def capitalize_timezone(tz_string):
+    # Capitalized the tz_requested given
+    tz_regex = re.compile(r"\w{1,}")
+    tz_split_list = tz_regex.findall(tz_string)
+
+    if len(tz_split_list) == 1:
+        tz_split_list[0] = str.upper(tz_split_list[0])
+    elif len(tz_split_list) > 1:
+        for index, word in enumerate(tz_split_list):
+            tz_split_list[index] = str.capitalize(word)
+
+    tz_requested = '/'.join(tz_split_list)
+    return tz_requested
 
 
 def give_time(tz_string):
@@ -21,27 +37,13 @@ def give_time(tz_string):
 
     tz = tz_string
 
-    if tz == 'bchat':
-        tz = 'Europe/London'
+    try:
         tzinfo = pytz.timezone(tz)
         time_utc = datetime.now(tzinfo)
         modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
-        tz = 'Europe/Stockholm'
-        tzinfo = pytz.timezone(tz)
-        time_utc = datetime.now(tzinfo)
-        modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
-        tz = 'Australia/Sydney'
-        tzinfo = pytz.timezone(tz)
-        time_utc = datetime.now(tzinfo)
-        modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
-    else:
-        try:
-            tzinfo = pytz.timezone(tz)
-            time_utc = datetime.now(tzinfo)
-            modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
-        except pytz.exceptions.UnknownTimeZoneError:
-            modules.connection.send_message("Timezone not found, don't forget to capitalize it: Europe/Oslo")
-            return
+    except pytz.exceptions.UnknownTimeZoneError:
+        modules.connection.send_message("Timezone not found, don't forget to capitalize it: Europe/Oslo")
+        return
 
 
 def give_hour_equivalence(i_string):
@@ -63,6 +65,8 @@ def give_hour_equivalence(i_string):
     tuple_time = time_string.partition(':')
     simple_hour = tuple_time[0]
     simple_minute = tuple_time[2]
+
+    tz_requested = capitalize_timezone(tz_requested)
 
     try:
         tz_requested = pytz.timezone(tz_requested)
@@ -139,3 +143,27 @@ def give_hour_equivalence(i_string):
     modules.connection.send_message(time_two.strftime(format) + " - %s" % tz_two)
     time_three = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_three))
     modules.connection.send_message(time_three.strftime(format) + " - %s" % tz_three)
+
+
+def main(i_string):
+
+    # If tz_string is only 2 letters, it can be used to request time zones for a code country
+    if len(i_string) == 2:
+        tz = str.upper(i_string)
+        if tz in pytz.country_timezones:
+            modules.connection.send_message("Timezones available for " + tz + ":")
+            modules.connection.send_message(', '.join(pytz.country_timezones(tz)))
+            return
+        else:
+            modules.connection.send_message("This country code is not recognized as a valid ISO-3166 country code.")
+            return
+
+    # if tz_string is a given and recognized word, it can be used to trigger specific timezone queries
+    if i_string == 'bchat':
+        give_time('Europe/London')
+        give_time('Europe/Oslo')
+        give_time('Australia/Sydney')
+    else:
+        # Capitalized the tz_requested given
+        tz_requested = capitalize_timezone(i_string)
+        give_time(tz_requested)
