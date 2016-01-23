@@ -47,7 +47,7 @@ def get_app_id(i_string):
 
     # Download the file if it doesn't exist or is too old
     if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
-        modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam apps list ..." % (h, m))
+        # DEBUG modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam apps list ..." % (h, m))
         urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
     with open(steam_appsid_filename, encoding="utf8") as f:
         steam_appsid = json.load(f)
@@ -93,7 +93,7 @@ def get_player_id(i_string, steam_api_key):
 
     # Download the file if it doesn't exist or is too old
     if not os.path.isfile(steam_player_id_filename) or os.stat(steam_player_id_filename).st_mtime < (now - cache_age):
-        modules.connection.send_message("Retrieving ID for player %s ..." % i_string)
+        # DEBUG modules.connection.send_message("Retrieving ID for player %s ..." % i_string)
         urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_id_filename)
 
     with open(steam_player_id_filename, encoding="utf8") as f:
@@ -105,6 +105,7 @@ def get_player_id(i_string, steam_api_key):
     else:
         modules.connection.send_message("ID not found for player %s" % i_string)
         return
+
 
 def get_app_metadata(steam_id, cc_code):
     """
@@ -129,7 +130,7 @@ def get_app_metadata(steam_id, cc_code):
 
     # Download the file if it doesn't exist or is too old
     if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - cache_age):
-        modules.connection.send_message("Title found (%s), retrieving last metadata ..." % steam_id)
+        # DEBUG modules.connection.send_message("Title found (%s), retrieving last metadata ..." % steam_id)
         urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
 
     with open(steam_appsmeta_filename, encoding="utf8") as f:
@@ -161,13 +162,14 @@ def get_owned_games(player_id, steam_api_key):
 
     # Download the file if it doesn't exist or is too old
     if not os.path.isfile(steam_player_meta_filename) or os.stat(steam_player_meta_filename).st_mtime < (now - cache_age):
-        modules.connection.send_message("Player found (%s), retrieving last metadata ..." % player_id)
+        # DEBUG modules.connection.send_message("Player found (%s), retrieving last metadata ..." % player_id)
         urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_meta_filename)
 
     with open(steam_player_meta_filename, encoding="utf8") as f:
         steam_player_meta = json.load(f)
 
     return steam_player_meta
+
 
 def steam(i_string):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
@@ -223,9 +225,9 @@ def steam_price(i_string):
                 price_final = float(price_final)
                 price_final *= 0.01  # Price was given in cents, switch to a more readable format
 
-                modules.connection.send_message("%s is at %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+                modules.connection.send_message("%s costs %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
             else:
-                modules.connection.send_message("No price information for that title")
+                modules.connection.send_message("No price information for this title")
 
             if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
                 price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
@@ -240,7 +242,7 @@ def steam_price(i_string):
                 price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
                 modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
         else:
-            modules.connection.send_message("No info available for that title")
+            modules.connection.send_message("No info available for this title")
 
         # Display the Steam Store url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
@@ -296,7 +298,7 @@ def player_owns_game(i_string):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    modules.connection.send_message("%s owns %s and has played for %dhr %02dmin" % (player_name, title_corrected, h, m))
+                    modules.connection.send_message("%s has played %s for %dhr %02dmin" % (player_name, title_corrected, h, m))
                     break
 
         if game_found == False:

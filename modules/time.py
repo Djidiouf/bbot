@@ -42,7 +42,7 @@ def give_time(tz_string):
         time_utc = datetime.now(tzinfo)
         modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
     except pytz.exceptions.UnknownTimeZoneError:
-        modules.connection.send_message("Timezone not found, don't forget to capitalize it: Europe/Oslo")
+        modules.connection.send_message("Timezone not found, format is: Europe/Oslo")
         return
 
 
@@ -71,7 +71,7 @@ def give_hour_equivalence(i_string):
     try:
         tz_requested = pytz.timezone(tz_requested)
     except pytz.exceptions.UnknownTimeZoneError:
-        modules.connection.send_message("Timezone not found, don't forget to capitalize it: Europe/Oslo")
+        modules.connection.send_message("Timezone not found, format is: Europe/Oslo")
         return
 
     # UTC detailed

@@ -31,6 +31,7 @@ import modules.connection
 import modules.help
 import modules.imdb
 import modules.youtube
+import modules.calc
 
 
 # conf = configparser.RawConfigParser()
@@ -58,6 +59,10 @@ user_message = r"(.*)!(.*)" + r"@" + ip_format                                 #
 # admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
 
 # REGEX ###############
+# !calc
+calc_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!calc"
+calc_regex = bytes(calc_regex, "UTF-8")
+
 # !help
 help_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!help"
 help_regex = bytes(help_regex, "UTF-8")
@@ -202,8 +207,18 @@ while 1:  # infinite loop
             modules.help.display_help(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!help")
+
+    # !calc <operations>
+    if re.search(calc_regex, ircmsg, re.IGNORECASE):
+        try:
+            input_string = regex_search_arguments(ircmsg, "!calc")
+            modules.calc.main(input_string)
+        except (AttributeError, ValueError, TypeError, SyntaxError, ZeroDivisionError):
+            error = sys.exc_info()[0]
+            modules.connection.send_message("Error: %s" % error)
+            modules.help.display_help("!calc")
 
     # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
     if re.search(imdb_regex, ircmsg, re.IGNORECASE):
@@ -212,7 +227,7 @@ while 1:  # infinite loop
             modules.imdb.imdb_info(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!imdb")
 
     # !meet <Continent/City> <HH:MM>
@@ -222,7 +237,7 @@ while 1:  # infinite loop
             modules.time.give_hour_equivalence(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!meet")
 
     # !money <number> <CODE1>:<CODE2>
@@ -232,7 +247,7 @@ while 1:  # infinite loop
             modules.money.money_rate(input_string)
         except (AttributeError, ValueError, IndexError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!money")
 
     # !op REGEX
@@ -254,7 +269,7 @@ while 1:  # infinite loop
             modules.speak.say(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!say")
 
     # !say <something>
@@ -264,7 +279,7 @@ while 1:  # infinite loop
             modules.speak.say(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!say")
 
     # !steamadmin <admin command>
@@ -274,7 +289,7 @@ while 1:  # infinite loop
             modules.steam.steam(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!steamadmin")
 
     # !steamown <player> <Game>
@@ -284,7 +299,7 @@ while 1:  # infinite loop
             modules.steam.player_owns_game(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!steamown")
 
     # !steamprice <Game Title>
@@ -294,7 +309,7 @@ while 1:  # infinite loop
             modules.steam.steam_price(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!steamprice")
 
     # !time <Continent/City>
@@ -304,7 +319,7 @@ while 1:  # infinite loop
             modules.time.main(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!time")
 
     # !yt <ChannelID>
@@ -314,5 +329,5 @@ while 1:  # infinite loop
             modules.youtube.main(input_string)
         except (AttributeError, ValueError):
             error = sys.exc_info()[0]
-            print("Error: %s" % error)
+            modules.connection.send_message("Error: %s" % error)
             modules.help.display_help("!yt")
