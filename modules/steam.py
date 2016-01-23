@@ -225,7 +225,7 @@ def steam_price(i_string):
                 price_final = float(price_final)
                 price_final *= 0.01  # Price was given in cents, switch to a more readable format
 
-                modules.connection.send_message("%s is at %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+                modules.connection.send_message("%s costs %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
             else:
                 modules.connection.send_message("No price information for this title")
 

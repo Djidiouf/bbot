@@ -14,6 +14,10 @@ def display_help(i_string):
 
     if i_string == "!help":
         print_help_help()
+    elif i_string == "!calc":
+        modules.connection.send_message("Usage: !calc <Operations>")
+        modules.connection.send_message("Purpose: Compute things faster than you")
+        modules.connection.send_message("Tip: Functions available > https://docs.python.org/3/library/math.html")
     elif i_string == "!imdb":
         modules.connection.send_message("Usage: !imdb <Guessed Title>")
         modules.connection.send_message("Usage: !imdb <Guessed Title>#<Year>")
