@@ -298,7 +298,7 @@ def player_owns_game(i_string):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    modules.connection.send_message("%s has played %s for %dhr %02dmin" % (player_name, title_corrected, h, m))
+                    modules.connection.send_message("%s has played %s for %dh %02dmin" % (player_name, title_corrected, h, m))
                     break
 
         if game_found == False:
