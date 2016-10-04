@@ -205,7 +205,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!help")
             modules.help.display_help(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -216,7 +216,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!calc")
             modules.calc.main(input_string)
-        except (AttributeError, ValueError, TypeError, SyntaxError, ZeroDivisionError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -227,7 +227,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!imdb")
             modules.imdb.imdb_info(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -238,7 +238,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!meet")
             modules.time.give_hour_equivalence(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -249,7 +249,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!money")
             modules.money.money_rate(input_string)
-        except (AttributeError, ValueError, IndexError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -272,7 +272,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -283,7 +283,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -294,7 +294,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!steamadmin")
             modules.steam.steam(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -305,7 +305,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!steamown")
             modules.steam.player_owns_game(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -316,7 +316,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!steamprice")
             modules.steam.steam_price(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -327,7 +327,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!time")
             modules.time.main(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
@@ -338,7 +338,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!yt")
             modules.youtube.main(input_string)
-        except (AttributeError, ValueError):
+        except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
