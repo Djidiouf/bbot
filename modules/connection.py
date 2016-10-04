@@ -20,6 +20,16 @@ def send_message(msg):
         ircsock.send(bytes("PRIVMSG %s :" % chan + msg + "\r\n", "UTF-8"))
 
 
+def send_message_admin(admin_name, msg):
+    """
+    Transform a message in input into an encoded message send through IRC socket
+
+    :param msg: string needed to be encoded and sent on IRC
+    :return:
+    """
+
+    ircsock.send(bytes("PRIVMSG %s :" % admin_name + msg + "\r\n", "UTF-8"))
+
 def ping():  # Respond to server pings
     ircsock.send(bytes("PONG :Pong\n", "UTF-8"))
 
