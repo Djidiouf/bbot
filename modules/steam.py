@@ -233,7 +233,7 @@ def steam_inline(i_string):
             price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
             # Substitute with nothing some html
-            html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>"]
+            html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
@@ -350,7 +350,7 @@ def steam_price(i_string):
                 price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
-                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>"]
+                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
