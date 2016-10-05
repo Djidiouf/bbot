@@ -23,6 +23,7 @@ def string_replace(i_string, pattern, newpattern):
     :param newpattern: replacement pattern
     :return: a string corrected
     """
+    pattern = re.escape(pattern)
     string_corrected = re.sub(pattern, newpattern, i_string)
     return string_corrected
 

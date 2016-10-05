@@ -107,6 +107,10 @@ steamown_regex = bytes(steamown_regex, "UTF-8")
 steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
 steamprice_regex = bytes(steamprice_regex, "UTF-8")
 
+# # steaminline
+# steaminline_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"(.*)" + r"http://store.steampowered.com/app/"
+# steaminline_regex = bytes(steaminline_regex, "UTF-8")
+
 # !time
 time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
 time_regex = bytes(time_regex, "UTF-8")
@@ -321,6 +325,15 @@ while 1:  # infinite loop
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
             modules.help.display_help("!steamprice")
+
+    # steaminline
+    if ircmsg.find(bytes("http://store.steampowered.com/app/", "UTF-8")) != -1 or ircmsg.find(bytes("https://store.steampowered.com/app/", "UTF-8")) != -1:
+        try:
+            modules.steam.steam_inline(ircmsg.decode('utf-8'))
+        except:
+            error = sys.exc_info()[0]
+            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
+            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
 
     # !time <Continent/City>
     if re.search(time_regex, ircmsg, re.IGNORECASE):
