@@ -208,12 +208,12 @@ while 1:  # infinite loop
     if re.search(help_regex, ircmsg, re.IGNORECASE):
         try:
             input_string = regex_search_arguments(ircmsg, "!help")
-            modules.help.display_help(input_string)
+            modules.help.display_help(input_string, "detailed")
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!help")
+            modules.help.print_help_help()
 
     # !calc <operations>
     if re.search(calc_regex, ircmsg, re.IGNORECASE):
@@ -224,7 +224,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!calc")
+            modules.help.display_help("!calc", "error")
 
     # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
     if re.search(imdb_regex, ircmsg, re.IGNORECASE):
@@ -235,7 +235,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!imdb")
+            modules.help.display_help("!imdb", "error")
 
     # !meet <Continent/City> <HH:MM>
     if re.search(meet_regex, ircmsg, re.IGNORECASE):
@@ -246,7 +246,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!meet")
+            modules.help.display_help("!meet", "error")
 
     # !money <number> <CODE1>:<CODE2>
     if re.search(money_regex, ircmsg, re.IGNORECASE):
@@ -257,7 +257,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!money")
+            modules.help.display_help("!money", "error")
 
     # !op REGEX
     if re.search(op_regex, ircmsg, re.IGNORECASE):
@@ -280,7 +280,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!say")
+            modules.help.display_help("!say", "error")
 
     # !say <something>
     if re.search(say_private_regex, ircmsg, re.IGNORECASE):
@@ -291,7 +291,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!say")
+            modules.help.display_help("!say", "error")
 
     # !steamadmin <admin command>
     if re.search(steamadmin_regex, ircmsg, re.IGNORECASE):
@@ -302,7 +302,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!steamadmin")
+            modules.help.display_help("!steamadmin", "error")
 
     # !steamown <player> <Game>
     if re.search(steamown_regex, ircmsg, re.IGNORECASE):
@@ -313,7 +313,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!steamown")
+            modules.help.display_help("!steamown", "error")
 
     # !steamprice <Game Title>
     if re.search(steamprice_regex, ircmsg, re.IGNORECASE):
@@ -324,7 +324,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!steamprice")
+            modules.help.display_help("!steamprice", "error")
 
     # steaminline
     if ircmsg.find(bytes("http://store.steampowered.com/app/", "UTF-8")) != -1 or ircmsg.find(bytes("https://store.steampowered.com/app/", "UTF-8")) != -1:
@@ -344,7 +344,7 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!time")
+            modules.help.display_help("!time", "error")
 
     # !yt <ChannelID>
     if re.search(yt_regex, ircmsg, re.IGNORECASE):
@@ -355,4 +355,4 @@ while 1:  # infinite loop
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!yt")
+            modules.help.display_help("!yt", "error")

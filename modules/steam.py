@@ -375,13 +375,16 @@ def steam_price(i_string):
 
 def player_owns_game(i_string):
     """
-    Responds to a user that inputs "!steamown <Player name> <Game Title>"
+    Responds to a user that inputs "!steamown <PlayerName> <GameTitle>"
     :param i_string:
     :return:
     """
     tuple_string = i_string.partition(' ')
     player_name = tuple_string[0]
     title_requested = tuple_string[2]
+
+    if title_requested == "":
+        raise ValueError('An argument is missing')
 
     game_found = False
     results_nb = 3
