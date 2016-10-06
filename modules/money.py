@@ -5,6 +5,7 @@ import urllib.request  # Open url request on website
 
 # Project modules
 import modules.connection
+import modules.textalteration
 
 
 def money_rate(i_string):
@@ -25,9 +26,9 @@ def money_rate(i_string):
     amount = float(amount)
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
-    tuple_time = codes.partition(':')
-    code1 = tuple_time[0].upper()
-    code2 = tuple_time[2].upper()
+    list_currencies = modules.textalteration.string_split(codes, ":", " in ", " IN ")
+    code1 = list_currencies[0].upper()
+    code2 = list_currencies[1].upper()
 
     url = 'https://www.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
 

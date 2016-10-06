@@ -69,6 +69,14 @@ def get_app_id(i_string):
     return result
 
 
+def get_app_id_from_url(i_string):
+
+    # divide a string in a tuple: 'str1', 'separator', 'str2'
+    parse_url = modules.textalteration.string_split(i_string, "/")
+    steam_app_id = str(parse_url[4])  # Give app id
+    return steam_app_id
+
+
 def get_player_id(i_string, steam_api_key):
     """
     Retrieve the ID of a steam player from Steam API
@@ -180,6 +188,115 @@ def steam(i_string):
         return  # Use ** return ** if in a function, exit() otherwise
 
 
+def steam_inline(i_string):
+    # Parse id from URL
+    steam_app_id = get_app_id_from_url(i_string)
+
+    # Steam API variable
+    country_currency = "fr"
+
+    # Price and info
+    # Retrieve all metadata of a specified Steam app
+    steam_appsmeta = get_app_metadata(steam_app_id, country_currency)
+
+    # Test of keys existence
+    if "data" in steam_appsmeta[steam_app_id]:
+        title_corrected = steam_appsmeta[steam_app_id]["data"]["name"]
+
+        if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
+            # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
+            price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
+            price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
+            price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
+            price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
+
+            price_initial = float(price_initial)
+            price_initial *= 0.01  # Price was given in cents, switch to a more readable format
+            price_discount = int(price_discount)
+            price_final = float(price_final)
+            price_final *= 0.01  # Price was given in cents, switch to a more readable format
+
+            # Any discount on Steam?
+            if price_discount > 0:
+                string_discount = " (-%i%% of %.2f %s)" % (
+                                            price_discount,price_initial, price_currency)
+            else:
+                string_discount = ""
+
+
+            modules.connection.send_message("%s costs %.2f %s" % (
+            title_corrected, price_final, price_currency) + string_discount)
+        else:
+            modules.connection.send_message("No price information for this title")
+
+        if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
+            price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
+
+            # Substitute with nothing some html
+            html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
+            price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
+
+            modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
+
+        if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
+            price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
+            modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
+    else:
+        modules.connection.send_message("No info available for this title")
+
+    # Own game ?
+    if "data" in steam_appsmeta[steam_app_id]:
+        steam_app_id = int(steam_app_id)  # Need to be an int
+
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+        steam_api_key = config['API_keys']['steam']
+
+        player_names = ["ARRG", "Djidiouf", "Timst"]
+
+        # Results variables
+        owners = []
+
+        for player_name in player_names:
+
+            # Retrieve player ID
+            player_id_details = get_player_id(player_name, steam_api_key)
+            if player_id_details is None:
+                return
+
+            owned_games = get_owned_games(player_id_details, steam_api_key)
+
+            if "games" in owned_games["response"]:
+                for line in owned_games["response"]["games"]:
+                    # Read the JSON data file
+                    if line['appid'] == steam_app_id:
+                        playtime_forever = line['playtime_forever']
+                        playtime_forever = playtime_forever * 60
+                        m, s = divmod(playtime_forever, 60)
+                        h, m = divmod(m, 60)
+
+                        playtime = "(%dh%02dmin)" % (h,m)
+
+                        tup_time = player_name, playtime
+                        owners.append(tup_time)
+                        break
+
+        nb_owners = len(owners)
+        if nb_owners > 0:
+            # Cleanup
+            owners = str(owners)[1:-1]
+            owners = modules.textalteration.string_replace(owners, "', '", " ")
+            owners = modules.textalteration.string_replace(owners, "'), ('", ", ")
+            owners = modules.textalteration.string_replace(owners, "('", "")
+            owners = modules.textalteration.string_replace(owners, "')", "")
+
+            modules.connection.send_message("Owned by: %s" % owners)
+        else:
+            modules.connection.send_message("Owned by: nobody")
+
+
+
+
 def steam_price(i_string):
     """
     Responds to a user that inputs "!steamprice <Game Title>"
@@ -233,7 +350,7 @@ def steam_price(i_string):
                 price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
-                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>"]
+                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
@@ -258,13 +375,16 @@ def steam_price(i_string):
 
 def player_owns_game(i_string):
     """
-    Responds to a user that inputs "!steamown <Player name> <Game Title>"
+    Responds to a user that inputs "!steamown <PlayerName> <GameTitle>"
     :param i_string:
     :return:
     """
     tuple_string = i_string.partition(' ')
     player_name = tuple_string[0]
     title_requested = tuple_string[2]
+
+    if title_requested == "":
+        raise ValueError('An argument is missing')
 
     game_found = False
     results_nb = 3
@@ -298,7 +418,7 @@ def player_owns_game(i_string):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    modules.connection.send_message("%s has played %s for %dhr %02dmin" % (player_name, title_corrected, h, m))
+                    modules.connection.send_message("%s has played %s for %dh %02dmin" % (player_name, title_corrected, h, m))
                     break
 
         if game_found == False:
