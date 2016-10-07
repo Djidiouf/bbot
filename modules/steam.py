@@ -30,8 +30,6 @@ def get_app_id(i_string):
     # Time variables
     now = time.time()
     cache_age = 86400  # 86400 = 24hr
-    m, s = divmod(cache_age, 60)
-    h, m = divmod(m, 60)
 
     # Condition variables
     title_found = False
@@ -178,6 +176,48 @@ def get_owned_games(player_id, steam_api_key):
 
     return steam_player_meta
 
+def get_owners(steam_id):
+    # Determine if a game is own by a list of predefined people
+    steam_app_id = int(steam_id)  # Need to be an int
+
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    steam_api_key = config['API_keys']['steam']
+
+    # Retrieve player name from config file
+    config = configparser.ConfigParser()
+    config.read(
+        os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    player_names = config['steam']['owners'].split(',')
+
+    # Results variables
+    results = []
+
+    for player_name in player_names:
+
+        # Retrieve player ID
+        player_id_details = get_player_id(player_name, steam_api_key)
+        if player_id_details is None:
+           return
+
+        owned_games = get_owned_games(player_id_details, steam_api_key)
+
+        if "games" in owned_games["response"]:
+            for line in owned_games["response"]["games"]:
+                # Read the JSON data file
+                if line['appid'] == steam_app_id:
+                    playtime_forever = line['playtime_forever']
+                    playtime_forever = playtime_forever * 60
+                    m, s = divmod(playtime_forever, 60)
+                    h, m = divmod(m, 60)
+
+                    playtime = "(%dh%02dmin)" % (h,m)
+
+                    tup_time = player_name, playtime
+                    results.append(tup_time)
+                    break
+
+    return results
 
 def steam(i_string):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
@@ -192,8 +232,7 @@ def steam_inline(i_string):
     # Parse id from URL
     steam_app_id = get_app_id_from_url(i_string)
 
-    # Steam API variable
-    country_currency = "fr"
+    country_currency = "fr"  # Currency queried in the Steam API
 
     # Price and info
     # Retrieve all metadata of a specified Steam app
@@ -244,58 +283,20 @@ def steam_inline(i_string):
     else:
         modules.connection.send_message("No info available for this title")
 
-    # Own game ?
-    if "data" in steam_appsmeta[steam_app_id]:
-        steam_app_id = int(steam_app_id)  # Need to be an int
+    # Is the game owned by a predefined list of players?
+    owners_records = get_owners(steam_app_id)
+    nb_owners = len(owners_records)
 
-        config = configparser.ConfigParser()
-        config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
-        steam_api_key = config['API_keys']['steam']
-
-        player_names = ["ARRG", "Djidiouf", "Timst"]
-
-        # Results variables
-        owners = []
-
-        for player_name in player_names:
-
-            # Retrieve player ID
-            player_id_details = get_player_id(player_name, steam_api_key)
-            if player_id_details is None:
-                return
-
-            owned_games = get_owned_games(player_id_details, steam_api_key)
-
-            if "games" in owned_games["response"]:
-                for line in owned_games["response"]["games"]:
-                    # Read the JSON data file
-                    if line['appid'] == steam_app_id:
-                        playtime_forever = line['playtime_forever']
-                        playtime_forever = playtime_forever * 60
-                        m, s = divmod(playtime_forever, 60)
-                        h, m = divmod(m, 60)
-
-                        playtime = "(%dh%02dmin)" % (h,m)
-
-                        tup_time = player_name, playtime
-                        owners.append(tup_time)
-                        break
-
-        nb_owners = len(owners)
-        if nb_owners > 0:
-            # Cleanup
-            owners = str(owners)[1:-1]
-            owners = modules.textalteration.string_replace(owners, "', '", " ")
-            owners = modules.textalteration.string_replace(owners, "'), ('", ", ")
-            owners = modules.textalteration.string_replace(owners, "('", "")
-            owners = modules.textalteration.string_replace(owners, "')", "")
-
-            modules.connection.send_message("Owned by: %s" % owners)
-        else:
-            modules.connection.send_message("Owned by: nobody")
-
-
-
+    if nb_owners > 0:
+        # Cleanup
+        owners_records = str(owners_records)[1:-1]
+        owners_records = modules.textalteration.string_replace(owners_records, "', '", " ")
+        owners_records = modules.textalteration.string_replace(owners_records, "'), ('", ", ")
+        owners_records = modules.textalteration.string_replace(owners_records, "('", "")
+        owners_records = modules.textalteration.string_replace(owners_records, "')", "")
+        modules.connection.send_message("Owned by: %s" % owners_records)
+    else:
+        modules.connection.send_message("Owned by: nobody")
 
 def steam_price(i_string):
     """
@@ -310,11 +311,8 @@ def steam_price(i_string):
     # Main variables
     title_requested = i_string.lower()
 
-    # Steam API variable
-    country_currency = "fr"
-
-    # Results variable
-    results_nb = 3  # Number of result which will be displayed if an exact natch didn't occur
+    country_currency = "fr"  # Currency queried in the Steam API
+    results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
     app_id_details = get_app_id(title_requested)
@@ -364,6 +362,22 @@ def steam_price(i_string):
         # Display the Steam Store url of the title requested
         modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
 
+        # Is the game owned by a predefined list of players?
+        owners_records = get_owners(steam_app_id)
+        nb_owners = len(owners_records)
+
+        if nb_owners > 0:
+            # Cleanup
+            owners_records = str(owners_records)[1:-1]
+            owners_records = modules.textalteration.string_replace(owners_records, "', '", " ")
+            owners_records = modules.textalteration.string_replace(owners_records, "'), ('", ", ")
+            owners_records = modules.textalteration.string_replace(owners_records, "('", "")
+            owners_records = modules.textalteration.string_replace(owners_records, "')", "")
+            modules.connection.send_message("Owned by: %s" % owners_records)
+        else:
+            modules.connection.send_message("Owned by: nobody")
+
+    # Title isn't found
     elif not is_steamapp_found and app_id_details[2]:
         modules.connection.send_message("Exact title not found, you can try:")
         for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
@@ -387,7 +401,7 @@ def player_owns_game(i_string):
         raise ValueError('An argument is missing')
 
     game_found = False
-    results_nb = 3
+    results_nb = 3  # Number of results which will be displayed if an exact natch didn't occur
 
     config = configparser.ConfigParser()
     config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
