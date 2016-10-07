@@ -95,7 +95,7 @@ say_regex = bytes(say_regex, "UTF-8")
 say_private_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
 say_private_regex = bytes(say_private_regex, "UTF-8")
 
-# !steam
+# !steamadmin
 steamadmin_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamadmin"
 steamadmin_regex = bytes(steamadmin_regex, "UTF-8")
 
@@ -106,10 +106,6 @@ steamown_regex = bytes(steamown_regex, "UTF-8")
 # !steamprice
 steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
 steamprice_regex = bytes(steamprice_regex, "UTF-8")
-
-# # steaminline
-# steaminline_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"(.*)" + r"http://store.steampowered.com/app/"
-# steaminline_regex = bytes(steaminline_regex, "UTF-8")
 
 # !time
 time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"

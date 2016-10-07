@@ -7,6 +7,7 @@ import time  # anti flood if needed: time.sleep(2)
 import os       # For instruction related to the OS
 import shutil   # Used for OS tools
 import configparser
+import re  # Regular Expression library
 
 # Project modules
 import modules.textalteration
@@ -68,10 +69,10 @@ def get_app_id(i_string):
 
 
 def get_app_id_from_url(i_string):
-
     # divide a string in a tuple: 'str1', 'separator', 'str2'
     parse_url = modules.textalteration.string_split(i_string, "/")
     steam_app_id = str(parse_url[4])  # Give app id
+    steam_app_id = re.sub("[^0-9]", "", steam_app_id) # Remove non numeric characters
     return steam_app_id
 
 
@@ -176,6 +177,7 @@ def get_owned_games(player_id, steam_api_key):
 
     return steam_player_meta
 
+
 def get_owners(steam_id):
     # Determine if a game is own by a list of predefined people
     steam_app_id = int(steam_id)  # Need to be an int
@@ -218,6 +220,7 @@ def get_owners(steam_id):
                     break
 
     return results
+
 
 def steam(i_string):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
@@ -297,6 +300,7 @@ def steam_inline(i_string):
         modules.connection.send_message("Owned by: %s" % owners_records)
     else:
         modules.connection.send_message("Owned by: nobody")
+
 
 def steam_price(i_string):
     """
