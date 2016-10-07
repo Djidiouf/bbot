@@ -236,7 +236,7 @@ def steam_inline(i_string):
             html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
-            modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
+            modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
 
         if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
             price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
@@ -353,7 +353,7 @@ def steam_price(i_string):
                 html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
-                modules.connection.send_message("About: %s" % price_about_the_game[0:130] + " [...]")
+                modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
 
             if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
                 price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
