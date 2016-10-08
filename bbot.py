@@ -52,6 +52,7 @@ channel = config['bot_configuration']['channel']
 botnick = config['bot_configuration']['botnick']
 # admins_list = config.get('bot_configuration', 'admin')
 admins_list = config['bot_configuration']['admins'].split(",")
+ignored_users = config['bot_configuration']['ignored_users'].split(",")
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
@@ -195,6 +196,14 @@ while 1:  # infinite loop
     # PING : if the server pings the bot, it will answer
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
+
+    # Ignore user
+    is_user_ignored = False
+    for user in ignored_users:
+        if ircmsg.startswith(bytes(":" + user, "UTF-8")):
+             is_user_ignored = True
+    if is_user_ignored:
+        continue
 
     # Hello <botname> <any message>
     if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1 or ircmsg.find(bytes(":hello %s" % botnick, "UTF-8")) != -1:
