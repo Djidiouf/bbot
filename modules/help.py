@@ -49,9 +49,9 @@ def display_help(i_string, mode):
     elif i_string == "!steamadmin":
         modules.connection.send_message("Usage: !steam <Admin Command>")
         if mode == "detailed":
-            modules.connection.send_message("Purpose: Let do super-things")
+            modules.connection.send_message("Purpose: Give supa powwa")
     elif i_string == "!steamown":
-        modules.connection.send_message("Usage: !steamown <player> <Game>")
+        modules.connection.send_message("Usage: !steamown <Player> <Game Title>")
         if mode == "detailed":
             modules.connection.send_message("Purpose: Tell if someone owns a specific game")
             modules.connection.send_message("Tip: Player name and title must be exact")
