@@ -12,6 +12,7 @@ import re  # Regular Expression library
 # Project modules
 import modules.textalteration
 import modules.connection
+import modules.steam_secondary
 
 
 def get_app_id(i_string):
@@ -200,7 +201,7 @@ def get_owners(steam_id):
         # Retrieve player ID
         player_id_details = get_player_id(player_name, steam_api_key)
         if player_id_details is None:
-           return
+            return
 
         owned_games = get_owned_games(player_id_details, steam_api_key)
 
@@ -268,6 +269,12 @@ def steam_inline(i_string):
 
             modules.connection.send_message("%s costs %.2f %s" % (
             title_corrected, price_final, price_currency) + string_discount)
+
+            # Give AKS price
+            aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
+            if aks_price_data != None:
+                modules.connection.send_message("AKS: " + aks_price_data[1] + " - " + aks_price_data[0])
+
         else:
             modules.connection.send_message("No price information for this title")
 
@@ -275,7 +282,7 @@ def steam_inline(i_string):
             price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
             # Substitute with nothing some html
-            html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
+            html_elements = ["<p>", "<br(.*)>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>", "</h2>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
