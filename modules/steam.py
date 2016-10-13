@@ -279,9 +279,12 @@ def steam_inline(i_string):
             modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount)
 
             # Give AKS price
-            aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
-            if aks_price_data != None:
-                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+            try:
+                aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
+                if aks_price_data != None:
+                   modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+            except:
+                pass
 
         else:
             modules.connection.send_message("No price information for this title")
@@ -380,9 +383,12 @@ def steam_price(i_string):
                                                 + " — http://store.steampowered.com/app/%s" % steam_app_id)
 
                 # Give AKS price
-                aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
-                if aks_price_data != None:
-                    modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+                try:
+                    aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
+                    if aks_price_data != None:
+                        modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+                except:
+                    pass
 
             else:
                 modules.connection.send_message("No price information for this title")
