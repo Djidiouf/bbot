@@ -252,6 +252,8 @@ def steam_inline(i_string):
             price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
             price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
             price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
+            if price_currency == 'EUR':
+                price_currency = '€'
 
             price_initial = float(price_initial)
             price_initial *= 0.01  # Price was given in cents, switch to a more readable format
@@ -261,13 +263,12 @@ def steam_inline(i_string):
 
             # Any discount on Steam?
             if price_discount > 0:
-                string_discount = " (-%i%% of %.2f %s)" % (
+                string_discount = " (-%i%% of %.2f%s)" % (
                                             price_discount,price_initial, price_currency)
             else:
                 string_discount = ""
 
-
-            modules.connection.send_message("%s costs %.2f %s" % (
+            modules.connection.send_message("%s costs %.2f%s" % (
             title_corrected, price_final, price_currency) + string_discount)
 
             # Give AKS price
@@ -344,6 +345,8 @@ def steam_price(i_string):
                 price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
                 price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
                 price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
+                if price_currency == 'EUR':
+                    price_currency='€'
 
                 price_initial = float(price_initial)
                 price_initial *= 0.01  # Price was given in cents, switch to a more readable format
@@ -351,7 +354,21 @@ def steam_price(i_string):
                 price_final = float(price_final)
                 price_final *= 0.01  # Price was given in cents, switch to a more readable format
 
-                modules.connection.send_message("%s costs %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
+                # Any discount on Steam?
+                if price_discount > 0:
+                    string_discount = " (-%i%% of %.2f%s)" % (
+                        price_discount, price_initial, price_currency)
+                else:
+                    string_discount = ""
+
+                modules.connection.send_message("%s costs %.2f%s" % (
+                    title_corrected, price_final, price_currency) + string_discount)
+
+                # Give AKS price
+                aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
+                if aks_price_data != None:
+                    modules.connection.send_message("AKS: " + aks_price_data[1] + " - " + aks_price_data[0])
+
             else:
                 modules.connection.send_message("No price information for this title")
 
@@ -371,7 +388,7 @@ def steam_price(i_string):
             modules.connection.send_message("No info available for this title")
 
         # Display the Steam Store url of the title requested
-        modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
+        modules.connection.send_message("Store: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
 
         # Is the game owned by a predefined list of players?
         owners_records = get_owners(steam_app_id)
