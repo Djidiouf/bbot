@@ -246,6 +246,14 @@ def steam_inline(i_string):
     if "data" in steam_appsmeta[steam_app_id]:
         title_corrected = steam_appsmeta[steam_app_id]["data"]["name"]
 
+        if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
+            price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
+            string_metacritic=" — Metacritic: %s" % price_metacritic_score
+        else:
+            string_metacritic=""
+
+        modules.connection.send_message(title_corrected + string_metacritic)
+
         if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
             # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
             price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
@@ -268,13 +276,12 @@ def steam_inline(i_string):
             else:
                 string_discount = ""
 
-            modules.connection.send_message("%s costs %.2f%s" % (
-            title_corrected, price_final, price_currency) + string_discount)
+            modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount)
 
             # Give AKS price
             aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
             if aks_price_data != None:
-                modules.connection.send_message("AKS: " + aks_price_data[1] + " - " + aks_price_data[0])
+                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
 
         else:
             modules.connection.send_message("No price information for this title")
@@ -283,14 +290,12 @@ def steam_inline(i_string):
             price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
             # Substitute with nothing some html
-            html_elements = ["<p>", "<br(.*)>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>", "</h2>"]
+            price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
+            html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>", "</h2>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
 
-        if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
-            price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-            modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
     else:
         modules.connection.send_message("No info available for this title")
 
@@ -339,6 +344,15 @@ def steam_price(i_string):
 
         # Test of keys existence
         if "data" in steam_appsmeta[steam_app_id]:
+
+            if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
+                price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
+                string_metacritic = " — Metacritic: %s" % price_metacritic_score
+            else:
+                string_metacritic = ""
+
+            modules.connection.send_message(title_corrected + string_metacritic)
+
             if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
                 # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
                 price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
@@ -361,13 +375,14 @@ def steam_price(i_string):
                 else:
                     string_discount = ""
 
-                modules.connection.send_message("%s costs %.2f%s" % (
-                    title_corrected, price_final, price_currency) + string_discount)
+                modules.connection.send_message("Steam: %.2f%s" % (
+                    price_final, price_currency) + string_discount
+                                                + " — http://store.steampowered.com/app/%s" % steam_app_id)
 
                 # Give AKS price
                 aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
                 if aks_price_data != None:
-                    modules.connection.send_message("AKS: " + aks_price_data[1] + " - " + aks_price_data[0])
+                    modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
 
             else:
                 modules.connection.send_message("No price information for this title")
@@ -376,19 +391,15 @@ def steam_price(i_string):
                 price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
                 # Substitute with nothing some html
-                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
+                price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
+                html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>",
+                                 "</h2>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
 
-            if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
-                price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-                modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
         else:
             modules.connection.send_message("No info available for this title")
-
-        # Display the Steam Store url of the title requested
-        modules.connection.send_message("Store: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
 
         # Is the game owned by a predefined list of players?
         owners_records = get_owners(steam_app_id)
