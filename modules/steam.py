@@ -71,7 +71,7 @@ def get_app_id(i_string):
 
 def get_app_id_from_url(i_string):
     # divide a string in a tuple: 'str1', 'separator', 'str2'
-    parse_url = modules.textalteration.string_split(i_string, "/")
+    parse_url = modules.textalteration.string_split(i_string, "/", "?")
     steam_app_id = str(parse_url[4])  # Give app id
     steam_app_id = re.sub("[^0-9]", "", steam_app_id) # Remove non numeric characters
     return steam_app_id
