@@ -333,7 +333,6 @@ def steam_price(i_string):
     # Main variables
     title_requested = i_string.lower()
 
-    country_currency = "fr"  # Currency queried in the Steam API
     results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
