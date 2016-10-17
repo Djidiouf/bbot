@@ -276,7 +276,8 @@ def steam_inline(i_string):
             else:
                 string_discount = ""
 
-            modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount)
+            modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount
+                                            + " — http://store.steampowered.com/app/%s" % steam_app_id)
 
             # Give AKS price
             try:
@@ -341,87 +342,7 @@ def steam_price(i_string):
 
     if is_steamapp_found:
         steam_app_id = app_id_details[1][0]
-        title_corrected = app_id_details[1][1]
-
-        # Retrieve all metadata of a specified Steam app
-        steam_appsmeta = get_app_metadata(steam_app_id, country_currency)
-
-        # Test of keys existence
-        if "data" in steam_appsmeta[steam_app_id]:
-
-            if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
-                price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-                string_metacritic = " — Metacritic: %s" % price_metacritic_score
-            else:
-                string_metacritic = ""
-
-            modules.connection.send_message(title_corrected + string_metacritic)
-
-            if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
-                # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
-                price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
-                price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
-                price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
-                price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
-                if price_currency == 'EUR':
-                    price_currency='€'
-
-                price_initial = float(price_initial)
-                price_initial *= 0.01  # Price was given in cents, switch to a more readable format
-                price_discount = int(price_discount)
-                price_final = float(price_final)
-                price_final *= 0.01  # Price was given in cents, switch to a more readable format
-
-                # Any discount on Steam?
-                if price_discount > 0:
-                    string_discount = " (-%i%% of %.2f%s)" % (
-                        price_discount, price_initial, price_currency)
-                else:
-                    string_discount = ""
-
-                modules.connection.send_message("Steam: %.2f%s" % (
-                    price_final, price_currency) + string_discount
-                                                + " — http://store.steampowered.com/app/%s" % steam_app_id)
-
-                # Give AKS price
-                try:
-                    aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
-                    if aks_price_data != None:
-                        modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
-                except:
-                    pass
-
-            else:
-                modules.connection.send_message("No price information for this title")
-
-            if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
-                price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
-
-                # Substitute with nothing some html
-                price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
-                html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>",
-                                 "</h2>", "<li>", "</li>", "<ul class=(.*)>"]
-                price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
-
-                modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
-
-        else:
-            modules.connection.send_message("No info available for this title")
-
-        # Is the game owned by a predefined list of players?
-        owners_records = get_owners(steam_app_id)
-        nb_owners = len(owners_records)
-
-        if nb_owners > 0:
-            # Cleanup
-            owners_records = str(owners_records)[1:-1]
-            owners_records = modules.textalteration.string_replace(owners_records, "', '", " ")
-            owners_records = modules.textalteration.string_replace(owners_records, "'), ('", ", ")
-            owners_records = modules.textalteration.string_replace(owners_records, "('", "")
-            owners_records = modules.textalteration.string_replace(owners_records, "')", "")
-            modules.connection.send_message("Owned by: %s" % owners_records)
-        else:
-            modules.connection.send_message("Owned by: nobody")
+        steam_inline("http://store.steampowered.com/app/%s" % steam_app_id)
 
     # Title isn't found
     elif not is_steamapp_found and app_id_details[2]:

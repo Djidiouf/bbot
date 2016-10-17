@@ -105,7 +105,7 @@ steamown_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!s
 steamown_regex = bytes(steamown_regex, "UTF-8")
 
 # !steamprice
-steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamprice"
+steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steam"
 steamprice_regex = bytes(steamprice_regex, "UTF-8")
 
 # !time
@@ -214,6 +214,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!help")
             modules.help.display_help(input_string, "detailed")
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -225,6 +226,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!calc")
             modules.calc.main(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -236,6 +238,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!imdb")
             modules.imdb.imdb_info(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -247,6 +250,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!meet")
             modules.time.give_hour_equivalence(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -258,6 +262,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!money")
             modules.money.money_rate(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -267,6 +272,7 @@ while 1:  # infinite loop
     # !op REGEX
     if re.search(op_regex, ircmsg, re.IGNORECASE):
         modules.connection.send_message("Nice try!")
+        continue
 
     # !quit REGEX
     if re.search(quit_user_regex, ircmsg, re.IGNORECASE):
@@ -281,6 +287,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -292,6 +299,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!say")
             modules.speak.say(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -303,6 +311,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!steamadmin")
             modules.steam.steam(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -314,6 +323,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!steamown")
             modules.steam.player_owns_game(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -323,8 +333,9 @@ while 1:  # infinite loop
     # !steamprice <Game Title>
     if re.search(steamprice_regex, ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!steamprice")
+            input_string = regex_search_arguments(ircmsg, "!steam")
             modules.steam.steam_price(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -335,6 +346,7 @@ while 1:  # infinite loop
     if ircmsg.find(bytes("http://store.steampowered.com/app/", "UTF-8")) != -1 or ircmsg.find(bytes("https://store.steampowered.com/app/", "UTF-8")) != -1:
         try:
             modules.steam.steam_inline(ircmsg.decode('utf-8'))
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -345,6 +357,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!time")
             modules.time.main(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
@@ -356,6 +369,7 @@ while 1:  # infinite loop
         try:
             input_string = regex_search_arguments(ircmsg, "!yt")
             modules.youtube.main(input_string)
+            continue
         except:
             error = sys.exc_info()[0]
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
