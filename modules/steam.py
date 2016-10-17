@@ -294,7 +294,8 @@ def steam_inline(i_string):
 
             # Substitute with nothing some html
             price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
-            html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>", "</h2>"]
+            html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>",
+                             "</h2>", "<li>", "</li>", "<ul class=(.*)>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
@@ -399,7 +400,7 @@ def steam_price(i_string):
                 # Substitute with nothing some html
                 price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
                 html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>",
-                                 "</h2>"]
+                                 "</h2>", "<li>", "</li>", "<ul class=(.*)>"]
                 price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
                 modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
