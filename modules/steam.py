@@ -65,6 +65,9 @@ def get_app_id(i_string):
         if line['name'].lower().startswith(title_requested):
             similar_titles.append(line['name'])  # Add each match to a list
 
+    # Sort similar_titles list alphabetically
+    similar_titles = sorted(similar_titles, key=str.lower)
+
     result = title_found, tup_id, similar_titles
     return result
 

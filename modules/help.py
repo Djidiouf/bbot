@@ -7,7 +7,7 @@ import modules.connection
 def print_help_help():
     modules.connection.send_message("Usage: !help <handler>")
     modules.connection.send_message("Known handlers:")
-    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !steamadmin !steamown !steamprice !time !yt")
+    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !steamadmin !steamown !time !yt")
 
 
 def display_help(i_string, mode):
@@ -46,8 +46,13 @@ def display_help(i_string, mode):
         if mode == "detailed":
             modules.connection.send_message("Purpose: Make me speak!")
             modules.connection.send_message("Tip: Be smart and /msg me the command privately")
+    elif i_string == "!steam":
+        modules.connection.send_message("Usage: !steam <Game Title>")
+        if mode == "detailed":
+            modules.connection.send_message("Purpose: Give the price of the given Steam game")
+            modules.connection.send_message("Tip: Title must be exact")
     elif i_string == "!steamadmin":
-        modules.connection.send_message("Usage: !steam <Admin Command>")
+        modules.connection.send_message("Usage: !steamadmin <Admin Command>")
         if mode == "detailed":
             modules.connection.send_message("Purpose: Give supa powwa")
     elif i_string == "!steamown":
@@ -55,11 +60,6 @@ def display_help(i_string, mode):
         if mode == "detailed":
             modules.connection.send_message("Purpose: Tell if someone owns a specific game")
             modules.connection.send_message("Tip: Player name and title must be exact")
-    elif i_string == "!steamprice":
-        modules.connection.send_message("Usage: !steamprice <Game Title>")
-        if mode == "detailed":
-            modules.connection.send_message("Purpose: Give the price of the given Steam game")
-            modules.connection.send_message("Tip: Title must be exact")
     elif i_string == "!time":
         modules.connection.send_message("Usage: !time <TimeZone>")
         if mode == "detailed":
