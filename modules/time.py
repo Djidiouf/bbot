@@ -36,11 +36,13 @@ def give_time(tz_string):
     """
 
     tz = tz_string
+    format = "%H:%M - %Z%z"
+    # format = "%Y-%m-%d - %H:%M:%S - %Z%z"  # full format
 
     try:
         tzinfo = pytz.timezone(tz)
         time_utc = datetime.now(tzinfo)
-        modules.connection.send_message(time_utc.strftime('%Y-%m-%d - %H:%M:%S - %Z%z') + " - %s" % tz)
+        modules.connection.send_message(time_utc.strftime(format) + " - %s" % tz)
     except pytz.exceptions.UnknownTimeZoneError:
         modules.connection.send_message("Timezone not found")
         raise ValueError('Timezone not found')
@@ -85,7 +87,8 @@ def give_hour_equivalence(i_string):
     hour = int(simple_hour)      # Need to be int and not string
     minute = int(simple_minute)  # Need to be int and not string
 
-    format = "%Y-%m-%d - %H:%M:%S - %Z%z"
+    format = "%H:%M - %Z%z"
+    # format = "%Y-%m-%d - %H:%M:%S - %Z%z"  # full format
 
     # modules.connection.send_message("DEBUG req: " + str(hour) +"H : " + str(minute) + "M")
     # modules.connection.send_message("DEBUG utc: " + str(hour_utc) +"H : " + str(minute_utc) + "M")
