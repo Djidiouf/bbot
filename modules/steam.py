@@ -163,7 +163,7 @@ def get_owned_games(player_id, steam_api_key):
     now = time.time()
     cache_age = 86400  # 86400 = 24hr
 
-    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json' % (steam_api_key, player_id)
+    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
 
     # Method CACHE: Retrieve and Store local file --------------
     if not os.path.exists(cache_steam_dir):  # Test if the directory exists
