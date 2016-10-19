@@ -257,6 +257,7 @@ def steam_inline(i_string):
 
         modules.connection.send_message(title_corrected + string_metacritic)
 
+        # Give Steam price
         if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
             # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
             price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
@@ -281,25 +282,24 @@ def steam_inline(i_string):
 
             modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount
                                             + " — http://store.steampowered.com/app/%s" % steam_app_id)
-
-            # Give AKS price
-            try:
-                aks_price_data=modules.steam_secondary.get_russian_price(title_corrected)
-                if aks_price_data != None:
-                   modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
-            except:
-                pass
-
         else:
-            modules.connection.send_message("No price information for this title")
+            modules.connection.send_message("Steam: Not on sale" + " — http://store.steampowered.com/app/%s" % steam_app_id)
+
+        # Give AKS price
+        try:
+            aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
+            if aks_price_data != None:
+                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+        except:
+            pass
 
         if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
             price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
             # Substitute with nothing some html
             price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
-            html_elements = ["<p>", "<br>", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>", "<h2(.*)>",
-                             "</h2>", "<li>", "</li>", "<ul class=(.*)>"]
+            html_elements = ["<p>", "<br>", "<br />", "<strong>", "</strong>", "<i>", "</i>", '<img src="(.*)">',
+                             "<h2>", "</h2>", "<li>", "</li>", '<ul class="(.*)">', "</ul>", '<a href="(.*)">', "</a>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
