@@ -201,7 +201,7 @@ while 1:  # infinite loop
     is_user_ignored = False
     for user in ignored_users:
         if ircmsg.startswith(bytes(":" + user, "UTF-8")):
-             is_user_ignored = True
+            is_user_ignored = True
     if is_user_ignored:
         continue
 

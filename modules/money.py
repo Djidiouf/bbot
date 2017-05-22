@@ -26,7 +26,7 @@ def money_rate(i_string):
     amount = float(amount)
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
-    list_currencies = modules.textalteration.string_split(codes, ":", " in ", " IN ")
+    list_currencies = modules.textalteration.string_split(codes, ":", " in ", " IN ", " ")
     code1 = list_currencies[0].upper()
     code2 = list_currencies[1].upper()
 
