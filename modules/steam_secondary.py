@@ -1,11 +1,11 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-import requests
+import requests  # Install module: requests
 
 # Third party modules
-from bs4 import BeautifulSoup
-import lxml  # Used for parsing html
+from bs4 import BeautifulSoup  # Install beautifulsoup4
+import lxml  # Install lxml  # Used for parsing html
 
 # Project modules
 import modules.textalteration

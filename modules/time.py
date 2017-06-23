@@ -5,7 +5,7 @@ from datetime import datetime  # displaying date and time
 import re # REGEX compiler
 
 # Third-party modules
-import pytz  # timezone information
+import pytz  # install module: pytz  # timezone information
 
 # Project modules
 import modules.connection
