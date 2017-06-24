@@ -32,6 +32,7 @@ import modules.help
 import modules.imdb
 import modules.youtube
 import modules.calc
+import modules.translate
 
 
 # conf = configparser.RawConfigParser()
@@ -314,7 +315,7 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
+            modules.connection.send_message_admin(admins_list[0], ("Steaminline: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
 
     # !say <something>
@@ -376,3 +377,14 @@ while 1:  # infinite loop
             modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
             modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
             modules.help.display_help("!yt", "error")
+
+    # linkinline
+    if ircmsg.find(bytes("http://", "UTF-8")) != -1 or ircmsg.find(
+            bytes("https://", "UTF-8")) != -1:
+        try:
+            modules.translate.translate_inline(ircmsg.decode('utf-8'))
+            continue
+        except:
+            error = sys.exc_info()[0]
+            modules.connection.send_message_admin(admins_list[0], ("Linkinline: %s" % ircmsg))
+            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
