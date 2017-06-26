@@ -16,8 +16,8 @@ def send_message(msg):
         :param msg: string needed to be encoded and sent on IRC
         :return:
         """
-        chan = config['bot_configuration']['channel']
-        ircsock.send(bytes("PRIVMSG %s :" % chan + msg + "\r\n", "UTF-8"))
+        channel = config['bot_configuration']['channel']
+        ircsock.send(bytes("PRIVMSG %s :" % channel + msg + "\r\n", "UTF-8"))
 
 
 def send_message_admin(admin_name, msg):

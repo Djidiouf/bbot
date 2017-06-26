@@ -1,7 +1,6 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-import urllib.request  # Open url request on website
 import re
 import configparser
 import os
@@ -10,6 +9,7 @@ import os
 import langdetect  # install langdetect
 import requests  # install requests
 import html2text  # install html2text
+import goslate  # install goslate | translate text
 
 # Project modules
 import modules.textalteration
@@ -38,17 +38,31 @@ def translate_inline(i_string):
 
     for url in urls:
         url = clean_url(url)
-        webpage = requests.get(url)
-        webpage = webpage.text
-        webpage = html2text.html2text(webpage)  # Retrieve only the text without any html tags
-        languages_detected = langdetect.detect_langs(webpage)
 
-        # modules.connection.send_message( url + " — Language probability: " + str(languages_detected)[1:-1])
+        webpage_src = requests.get(url)  # Retrieve URL data
 
-        source_language = str(languages_detected[0]).split(":")
+        # Check if data contain text or not
+        if "text/html" in webpage_src.headers["content-type"]:
+            webpage_src = webpage_src.text
+            # webpage_title = webpage_src[webpage_src.find('<title>') + 7: webpage_src.find('</title>')]
 
-        if source_language[0] not in notfrom_languages:
-            for language in translated_languages:
-                modules.connection.send_message("Translated in %s: " % (language) +
-                                                "https://translate.google.com/translate?sl=%s&tl=%s&js=y&prev=_t&hl=en&ie=UTF-8&u=%s"
-                                                % (source_language[0], translated_languages[0], url))
+            h = html2text.HTML2Text()
+            h.ignore_links = True
+            h.ignore_images = True
+            h.images_to_alt = True
+            webpage = h.handle(webpage_src)  # Retrieve only the text without any html tags
+
+            languages_detected = langdetect.detect_langs(webpage)
+
+            # modules.connection.send_message( url + " — Language probability: " + str(languages_detected)[1:-1])
+
+            source_language = str(languages_detected[0]).split(":")
+
+            if source_language[0] not in notfrom_languages:
+                for language in translated_languages:
+                    modules.connection.send_message("Translated in %s: " % (language) +
+                                                    "https://translate.google.com/translate?sl=%s&tl=%s&js=y&prev=_t&hl=en&ie=UTF-8&u=%s"
+                                                    % (source_language[0], translated_languages[0], url))
+        else:
+            # Disregard such url
+            pass

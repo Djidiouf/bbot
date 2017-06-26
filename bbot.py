@@ -57,8 +57,10 @@ ignored_users = config['bot_configuration']['ignored_users'].split(",")
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
+
 user_message = r"(.*)!(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
 # admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
+
 
 # REGEX ###############
 # !calc
@@ -90,11 +92,11 @@ quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!
 quit_user_regex = bytes(quit_user_regex, "UTF-8")
 
 # !say
-say_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :" + r"!say"
+say_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
 say_regex = bytes(say_regex, "UTF-8")
 
 # !say (In private: /msg botnick !say)
-say_private_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
+say_private_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :" + r"!say"
 say_private_regex = bytes(say_private_regex, "UTF-8")
 
 # !steam
@@ -114,7 +116,7 @@ time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
 time_regex = bytes(time_regex, "UTF-8")
 
 # !yt
-yt_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!yt"
+yt_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt"
 yt_regex = bytes(yt_regex, "UTF-8")
 
 
@@ -165,7 +167,7 @@ def is_message_from_admin(message):
 
     for element in admins_list:
         print("element is :", element)
-        user_involved_regex = re.escape(element) + r'(?=!~' + re.escape(element) + r'@)'
+        user_involved_regex = re.escape(element) + r'(?=!.*@)'
         print("user_involved_regex is :", user_involved_regex)
 
         try:
@@ -193,7 +195,7 @@ while 1:  # infinite loop
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # Remove linebreaks which appear on each message
     print(ircmsg)  # DEBUG: print output of the channel
 
-    # TRACKS ##################################################################
+    # TRACKS -----------------------------------------------------------------------------------------------------------
     # PING : if the server pings the bot, it will answer
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
@@ -206,10 +208,36 @@ while 1:  # infinite loop
     if is_user_ignored:
         continue
 
+    # INLINE -----------------------------------------------------------------------------------------------------------
     # Hello <botname> <any message>
     if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1 or ircmsg.find(bytes(":hello %s" % botnick, "UTF-8")) != -1:
         modules.speak.hello()
 
+    # linkinline
+    if ircmsg.find(bytes("http://", "UTF-8")) != -1 or ircmsg.find(
+            bytes("https://", "UTF-8")) != -1:
+        try:
+            modules.translate.translate_inline(ircmsg.decode('utf-8'))
+            continue
+        except:
+            error = sys.exc_info()[0]
+            cmd = "linkinline"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
+
+    # steaminline
+    if ircmsg.find(bytes("http://store.steampowered.com/app/", "UTF-8")) != -1 or ircmsg.find(
+            bytes("https://store.steampowered.com/app/", "UTF-8")) != -1:
+        try:
+            modules.steam.steam_inline(ircmsg.decode('utf-8'))
+            continue
+        except:
+            error = sys.exc_info()[0]
+            cmd = "streaminline"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
+
+    # COMMANDS ---------------------------------------------------------------------------------------------------------
     # !help
     if re.search(help_regex, ircmsg, re.IGNORECASE):
         try:
@@ -218,8 +246,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!help"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.print_help_help()
 
     # !calc <operations>
@@ -230,8 +259,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!calc"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!calc", "error")
 
     # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
@@ -242,8 +272,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!imdb"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!imdb", "error")
 
     # !meet <Continent/City> <HH:MM>
@@ -254,8 +285,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!meet"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!meet", "error")
 
     # !money <number> <CODE1>:<CODE2>
@@ -266,8 +298,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!money"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!money", "error")
 
     # !op REGEX
@@ -291,8 +324,22 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!say"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
+            modules.help.display_help("!say", "error")
+
+    # !say <something privately>
+    if re.search(say_private_regex, ircmsg, re.IGNORECASE):
+        try:
+            input_string = regex_search_arguments(ircmsg, "!say")
+            modules.speak.say(input_string)
+            continue
+        except:
+            error = sys.exc_info()[0]
+            cmd = "!say - private"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!say", "error")
 
     # !steam <Game Title>
@@ -303,32 +350,10 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!steam"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!steam", "error")
-
-    # steaminline
-    if ircmsg.find(bytes("http://store.steampowered.com/app/", "UTF-8")) != -1 or ircmsg.find(
-            bytes("https://store.steampowered.com/app/", "UTF-8")) != -1:
-        try:
-            modules.steam.steam_inline(ircmsg.decode('utf-8'))
-            continue
-        except:
-            error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Steaminline: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-
-    # !say <something>
-    if re.search(say_private_regex, ircmsg, re.IGNORECASE):
-        try:
-            input_string = regex_search_arguments(ircmsg, "!say")
-            modules.speak.say(input_string)
-            continue
-        except:
-            error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
-            modules.help.display_help("!say", "error")
 
     # !steamadmin <admin command>
     if re.search(steamadmin_regex, ircmsg, re.IGNORECASE):
@@ -338,8 +363,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!steamadmin"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!steamadmin", "error")
 
     # !steamown <player> <Game>
@@ -350,8 +376,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!steamown"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!steamown", "error")
 
     # !time <Continent/City>
@@ -362,8 +389,9 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!time"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!time", "error")
 
     # !yt <ChannelID>
@@ -374,17 +402,7 @@ while 1:  # infinite loop
             continue
         except:
             error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Command: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
+            cmd = "!yt"
+            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
+            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
             modules.help.display_help("!yt", "error")
-
-    # linkinline
-    if ircmsg.find(bytes("http://", "UTF-8")) != -1 or ircmsg.find(
-            bytes("https://", "UTF-8")) != -1:
-        try:
-            modules.translate.translate_inline(ircmsg.decode('utf-8'))
-            continue
-        except:
-            error = sys.exc_info()[0]
-            modules.connection.send_message_admin(admins_list[0], ("Linkinline: %s" % ircmsg))
-            modules.connection.send_message_admin(admins_list[0], ("Error: %s" % error))
