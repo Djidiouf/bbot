@@ -45,6 +45,9 @@ import modules.translate
 # with open('config.cfg', 'w') as configfile:
 #     conf.write(configfile)
 
+# Variables
+debug = True
+
 # Read config file
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'config.cfg'))  # Absolute path is better
@@ -62,7 +65,15 @@ user_message = r"(.*)!(.*)" + r"@" + ip_format                                 #
 # admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
 
 
-# REGEX ###############
+# REGEX ----------------------------------------------------------------------------------------------------------------
+# Scan if command made directly to botnick or to channel
+botnick_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :"
+botnick_regex = bytes(botnick_regex, "UTF-8")
+
+channel_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :"
+channel_regex = bytes(channel_regex, "UTF-8")
+
+# commands
 # !calc
 calc_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!calc"
 calc_regex = bytes(calc_regex, "UTF-8")
@@ -160,31 +171,6 @@ def regex_search_arguments(message, expression):
     return arguments
 
 
-def is_message_from_admin(message):
-    is_from_admin = False
-
-    decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
-
-    for element in admins_list:
-        print("element is :", element)
-        user_involved_regex = re.escape(element) + r'(?=!.*@)'
-        print("user_involved_regex is :", user_involved_regex)
-
-        try:
-            user_involved_searched = re.search(user_involved_regex, decoded_ircmsg, re.IGNORECASE)
-            print("user_involved_searched is :", user_involved_searched)
-            user_involved = user_involved_searched.group(0)
-            print("user_involved is :", user_involved)
-            is_from_admin = True
-            break
-        except AttributeError:
-            is_from_admin = False
-            pass
-
-    print("is_from_admin is :", is_from_admin)
-    return is_from_admin
-
-
 # connect and join the configured channel
 modules.connection.join_chan(channel)
 
@@ -193,20 +179,32 @@ modules.connection.join_chan(channel)
 while 1:  # infinite loop
     ircmsg = modules.connection.receive_data()  # Receive data from the server
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # Remove linebreaks which appear on each message
-    print(ircmsg)  # DEBUG: print output of the channel
+    decoded_ircmsg = ircmsg.decode('utf-8')  # decode ircmsg from binary to string
+
+    # DEBUG: print output of the channel
+    if debug:
+        # print(ircmsg)         # binary
+        print(decoded_ircmsg)   # string
 
     # TRACKS -----------------------------------------------------------------------------------------------------------
     # PING : if the server pings the bot, it will answer
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
-    # Ignore user
-    is_user_ignored = False
-    for user in ignored_users:
-        if ircmsg.startswith(bytes(":" + user, "UTF-8")):
-            is_user_ignored = True
-    if is_user_ignored:
+    # User talking retrieval
+    try:
+        user_talking_regex = r'(.*)' + r'(?=!.*@)'
+        user_talking_searched = re.search(user_talking_regex, decoded_ircmsg, re.IGNORECASE)
+        user_talking = user_talking_searched.group(0)[1:]  # [1:] removes first character (which is btw, a : )
+        # print(user_talking)
+    except:
+        # message must be a system server message
         continue
+
+    # Ignore specific users
+    if user_talking:
+        if user_talking in ignored_users:
+            continue
 
     # INLINE -----------------------------------------------------------------------------------------------------------
     # Hello <botname> <any message>
@@ -310,11 +308,12 @@ while 1:  # infinite loop
 
     # !quit REGEX
     if re.search(quit_user_regex, ircmsg, re.IGNORECASE):
-        if is_message_from_admin(ircmsg):  # Catch if a bot admin is at the origin of the message
-            modules.connection.send_message("Bye bye bitches!")
-            quit()
-        else:
-            modules.connection.send_message("*rires*")
+        if user_talking:
+            if user_talking in admins_list:
+                modules.connection.send_message("Bye bye bitches!")
+                quit()
+            else:
+                modules.connection.send_message("*rires*")
 
     # !say <something>
     if re.search(say_regex, ircmsg, re.IGNORECASE):
