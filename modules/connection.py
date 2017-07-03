@@ -9,26 +9,21 @@ import os
 irc_ssl_ports = [6697, 7070]
 
 
-def send_message(msg):
+def send_message(msg, i_medium=None, i_user=None):
         """
         Transform a message in input into an encoded message send through IRC socket
 
         :param msg: string needed to be encoded and sent on IRC
+        :param i_medium: channel or private
+        :param i_user: receiver of the message if any
         :return:
         """
-        channel = config['bot_configuration']['channel']
-        ircsock.send(bytes("PRIVMSG %s :" % channel + msg + "\r\n", "UTF-8"))
+        if i_medium == "private":
+            ircsock.send(bytes("PRIVMSG %s :" % i_user + msg + "\r\n", "UTF-8"))
+        else:
+            channel = config['bot_configuration']['channel']
+            ircsock.send(bytes("PRIVMSG %s :" % channel + msg + "\r\n", "UTF-8"))
 
-
-def send_message_admin(admin_name, msg):
-    """
-    Transform a message in input into an encoded message send through IRC socket
-
-    :param msg: string needed to be encoded and sent on IRC
-    :return:
-    """
-
-    ircsock.send(bytes("PRIVMSG %s :" % admin_name + msg + "\r\n", "UTF-8"))
 
 def ping():  # Respond to server pings
     ircsock.send(bytes("PONG :Pong\n", "UTF-8"))

@@ -62,113 +62,71 @@ ignored_users = config['bot_configuration']['ignored_users'].split(",")
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
 
 user_message = r"(.*)!(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
-# admin_message = re.escape(admin) + r"!~" + re.escape(admin) + r"@" + ip_format  # Match: Admin!~Admin@123.123.123.123
 
 
 # REGEX ----------------------------------------------------------------------------------------------------------------
 # Scan if command made directly to botnick or to channel
 botnick_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :"
-botnick_regex = bytes(botnick_regex, "UTF-8")
 
 channel_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :"
-channel_regex = bytes(channel_regex, "UTF-8")
 
 # commands
 # !calc
 calc_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!calc"
-calc_regex = bytes(calc_regex, "UTF-8")
 
 # !help
 help_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!help"
-help_regex = bytes(help_regex, "UTF-8")
 
 # !imdb
 imdb_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!imdb"
-imdb_regex = bytes(imdb_regex, "UTF-8")
 
 # !meet
 meet_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!meet"
-meet_regex = bytes(meet_regex, "UTF-8")
 
 # !money
 money_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!money"
-money_regex = bytes(money_regex, "UTF-8")
 
 # !op
 op_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!op"
-op_regex = bytes(op_regex, "UTF-8")
 
 # !quit
 quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
-quit_user_regex = bytes(quit_user_regex, "UTF-8")
 
 # !say
 say_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
-say_regex = bytes(say_regex, "UTF-8")
 
 # !say (In private: /msg botnick !say)
 say_private_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :" + r"!say"
-say_private_regex = bytes(say_private_regex, "UTF-8")
 
 # !steam
 steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steam"
-steamprice_regex = bytes(steamprice_regex, "UTF-8")
 
 # !steamadmin
 steamadmin_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamadmin"
-steamadmin_regex = bytes(steamadmin_regex, "UTF-8")
 
 # !steamown
 steamown_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamown"
-steamown_regex = bytes(steamown_regex, "UTF-8")
 
 # !time
 time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
-time_regex = bytes(time_regex, "UTF-8")
 
 # !yt
 yt_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt"
-yt_regex = bytes(yt_regex, "UTF-8")
-
-
-def regex_coder(message, expression, convention):
-    """
-    Use with:
-    input_string = regex_coder(ircmsg, ":!meet\s", 3)
-
-    :param message:
-    :param expression:
-    :param convention:
-    :return:
-    """
-    p = re.compile(expression)  # Compile Regular Expression
-    decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
-    string_search = p.search(decoded_ircmsg)  # search the string for RE
-
-    if convention == 1:  # search for \r\n
-        if string_search:
-            msg_decoded = decoded_ircmsg[:string_search.start()]
-            coded = bytes(msg_decoded, 'utf-8')
-            return coded
-    elif convention == 2:
-        if string_search:
-            msg_decoded = string_search.group()
-            return msg_decoded
-    elif convention == 3:  # Get Last word
-        if string_search:
-            msg_decoded = decoded_ircmsg[string_search.end():]
-            return msg_decoded
-    else:
-        print("convention not found")
 
 
 def regex_search_arguments(message, expression):
-    decoded_ircmsg = message.decode('utf-8')  # decode ircmsg to string
     arguments_regex = '(?<=' + re.escape(expression) + ' )(.*)'
-    string_searched = re.search(arguments_regex, decoded_ircmsg, re.IGNORECASE)
+    string_searched = re.search(arguments_regex, message, re.IGNORECASE)
     # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
     arguments = string_searched.group(0)
     return arguments
+
+def report_error(i_cmd, i_error, i_msg, i_admins_list, is_help_needed=False):
+    modules.connection.send_message(("Call %s: %s" % (i_cmd, i_msg)), "private", i_admins_list)
+    modules.connection.send_message(("Error %s: %s" % (i_cmd, i_error)), "private", i_admins_list)
+
+    if is_help_needed:
+        modules.help.display_help(i_cmd, "error")
 
 
 # connect and join the configured channel
@@ -191,6 +149,17 @@ while 1:  # infinite loop
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
+    # Determine if private message or channel
+    try:
+        medium_used_regex = user_message + r" PRIVMSG " + r'.*' + r'(?=.:)'
+        medium_used_searched = re.search(medium_used_regex, decoded_ircmsg, re.IGNORECASE)
+        medium_used = medium_used_searched.group(0).split()[-1]  # split the last word of matching pattern in regex
+        # user_talking_beta = medium_used_searched.group(1)[1:]  # [1:] removes first character (which is btw, a : )
+        # print(user_talking_beta)
+        # print(medium_used)
+    except:
+        pass
+
     # User talking retrieval
     try:
         user_talking_regex = r'(.*)' + r'(?=!.*@)'
@@ -208,106 +177,79 @@ while 1:  # infinite loop
 
     # INLINE -----------------------------------------------------------------------------------------------------------
     # Hello <botname> <any message>
-    if ircmsg.find(bytes(":Hello %s" % botnick, "UTF-8")) != -1 or ircmsg.find(bytes(":hello %s" % botnick, "UTF-8")) != -1:
+    if decoded_ircmsg.find(":Hello %s" % botnick) != -1 or decoded_ircmsg.find(":hello %s" % botnick) != -1:
         modules.speak.hello()
 
     # linkinline
-    if ircmsg.find(bytes("http://", "UTF-8")) != -1 or ircmsg.find(
-            bytes("https://", "UTF-8")) != -1:
+    if decoded_ircmsg.find("http://") != -1 or decoded_ircmsg.find("https://") != -1:
         try:
-            modules.translate.translate_inline(ircmsg.decode('utf-8'))
-            continue
+            modules.translate.translate_inline(decoded_ircmsg)
+            pass
         except:
-            error = sys.exc_info()[0]
-            cmd = "linkinline"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
+            report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, admins_list[0], False)
 
     # steaminline
-    if ircmsg.find(bytes("http://store.steampowered.com/app/", "UTF-8")) != -1 or ircmsg.find(
-            bytes("https://store.steampowered.com/app/", "UTF-8")) != -1:
+    if decoded_ircmsg.find("http://store.steampowered.com/app/") != -1 or decoded_ircmsg.find(
+            "https://store.steampowered.com/app/") != -1:
         try:
-            modules.steam.steam_inline(ircmsg.decode('utf-8'))
-            continue
+            modules.steam.steam_inline(decoded_ircmsg)
+            pass
         except:
-            error = sys.exc_info()[0]
-            cmd = "streaminline"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
+            report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, admins_list[0], False)
 
     # COMMANDS ---------------------------------------------------------------------------------------------------------
     # !help
-    if re.search(help_regex, ircmsg, re.IGNORECASE):
+    if re.search(help_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!help")
+            input_string = regex_search_arguments(decoded_ircmsg, "!help")
             modules.help.display_help(input_string, "detailed")
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!help"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.print_help_help()
+            report_error("!help", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !calc <operations>
-    if re.search(calc_regex, ircmsg, re.IGNORECASE):
+    if re.search(calc_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!calc")
+            input_string = regex_search_arguments(decoded_ircmsg, "!calc")
             modules.calc.main(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!calc"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!calc", "error")
+            report_error("!calc", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
-    if re.search(imdb_regex, ircmsg, re.IGNORECASE):
+    if re.search(imdb_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!imdb")
+            input_string = regex_search_arguments(decoded_ircmsg, "!imdb")
             modules.imdb.imdb_info(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!imdb"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!imdb", "error")
+            report_error("!imdb", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !meet <Continent/City> <HH:MM>
-    if re.search(meet_regex, ircmsg, re.IGNORECASE):
+    if re.search(meet_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!meet")
+            input_string = regex_search_arguments(decoded_ircmsg, "!meet")
             modules.time.give_hour_equivalence(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!meet"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!meet", "error")
+            report_error("!meet", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !money <number> <CODE1>:<CODE2>
-    if re.search(money_regex, ircmsg, re.IGNORECASE):
+    if re.search(money_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!money")
+            input_string = regex_search_arguments(decoded_ircmsg, "!money")
             modules.money.money_rate(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!money"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!money", "error")
+            report_error("!money", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !op REGEX
-    if re.search(op_regex, ircmsg, re.IGNORECASE):
+    if re.search(op_regex, decoded_ircmsg, re.IGNORECASE):
         modules.connection.send_message("Nice try!")
         continue
 
     # !quit REGEX
-    if re.search(quit_user_regex, ircmsg, re.IGNORECASE):
+    if re.search(quit_user_regex, decoded_ircmsg, re.IGNORECASE):
         if user_talking:
             if user_talking in admins_list:
                 modules.connection.send_message("Bye bye bitches!")
@@ -316,92 +258,64 @@ while 1:  # infinite loop
                 modules.connection.send_message("*rires*")
 
     # !say <something>
-    if re.search(say_regex, ircmsg, re.IGNORECASE):
+    if re.search(say_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!say")
+            input_string = regex_search_arguments(decoded_ircmsg, "!say")
             modules.speak.say(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!say"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!say", "error")
+            report_error("!say", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !say <something privately>
-    if re.search(say_private_regex, ircmsg, re.IGNORECASE):
+    if re.search(say_private_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!say")
+            input_string = regex_search_arguments(decoded_ircmsg, "!say")
             modules.speak.say(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!say - private"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!say", "error")
+            report_error("!say private", sys.exc_info()[0], decoded_ircmsg, admins_list[0], False)
 
     # !steam <Game Title>
-    if re.search(steamprice_regex, ircmsg, re.IGNORECASE):
+    if re.search(steamprice_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!steam")
+            input_string = regex_search_arguments(decoded_ircmsg, "!steam")
             modules.steam.steam_price(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!steam"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!steam", "error")
+            report_error("!steam", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !steamadmin <admin command>
-    if re.search(steamadmin_regex, ircmsg, re.IGNORECASE):
+    if re.search(steamadmin_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!steamadmin")
+            input_string = regex_search_arguments(decoded_ircmsg, "!steamadmin")
             modules.steam.steam(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!steamadmin"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!steamadmin", "error")
+            report_error("!steamadmin", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !steamown <player> <Game>
-    if re.search(steamown_regex, ircmsg, re.IGNORECASE):
+    if re.search(steamown_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!steamown")
+            input_string = regex_search_arguments(decoded_ircmsg, "!steamown")
             modules.steam.player_owns_game(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!steamown"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!steamown", "error")
+            report_error("!steamown", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !time <Continent/City>
-    if re.search(time_regex, ircmsg, re.IGNORECASE):
+    if re.search(time_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!time")
+            input_string = regex_search_arguments(decoded_ircmsg, "!time")
             modules.time.main(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!time"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!time", "error")
+            report_error("!time", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
 
     # !yt <ChannelID>
-    if re.search(yt_regex, ircmsg, re.IGNORECASE):
+    if re.search(yt_regex, decoded_ircmsg, re.IGNORECASE):
         try:
-            input_string = regex_search_arguments(ircmsg, "!yt")
+            input_string = regex_search_arguments(decoded_ircmsg, "!yt")
             modules.youtube.main(input_string)
             continue
         except:
-            error = sys.exc_info()[0]
-            cmd = "!yt"
-            modules.connection.send_message_admin(admins_list[0], ("Call %s: %s" % (cmd, ircmsg)))
-            modules.connection.send_message_admin(admins_list[0], ("Error %s: %s" % (cmd, error)))
-            modules.help.display_help("!yt", "error")
+            report_error("!yt", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
