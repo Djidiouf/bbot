@@ -26,12 +26,14 @@ def get_app_id(i_string):
     'zwioq' (False, (), [])
     """
     # Main variables
-    title_requested = i_string.lower()
+    special_chars= ["®", "™", "Tom Clancy's ", "Sid Meier's "]
+    title_requested = modules.textalteration.string_cleanup(i_string, special_chars)
+    title_requested = title_requested.lower()
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
     now = time.time()
-    cache_age = 86400  # 86400 = 24hr
+    cache_age = 86400  # in seconds, 86400 = 24hr
 
     # Condition variables
     title_found = False
@@ -54,6 +56,7 @@ def get_app_id(i_string):
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
+        line['name'] = modules.textalteration.string_cleanup(line['name'], special_chars)
         if line['name'].lower() == title_requested:
             title_found = True
 
@@ -61,6 +64,8 @@ def get_app_id(i_string):
             steam_app_id = str(steam_app_id)
             title_corrected = line['name']  # Ensure that the correct case is displayed in the future
             tup_id = steam_app_id, title_corrected
+
+            return title_found, tup_id  # End of loop if found
 
         if line['name'].lower().startswith(title_requested):
             similar_titles.append(line['name'])  # Add each match to a list
@@ -226,10 +231,10 @@ def get_owners(steam_id):
     return results
 
 
-def steam(i_string):
+def steam_admin(i_string):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
-    if i_string.lower() == "@rm-cache":
+    if i_string.lower() == "rm-cache":
         shutil.rmtree(cache_steam_dir)
         modules.connection.send_message("Cache has been deleted")
         return  # Use ** return ** if in a function, exit() otherwise
@@ -314,12 +319,7 @@ def steam_inline(i_string):
 
     if nb_owners > 0:
         # Cleanup
-        owners_records = str(owners_records)[1:-1]
-        owners_records = modules.textalteration.string_replace(owners_records, "', '", " ")
-        owners_records = modules.textalteration.string_replace(owners_records, "'), ('", ", ")
-        owners_records = modules.textalteration.string_replace(owners_records, "('", "")
-        owners_records = modules.textalteration.string_replace(owners_records, "')", "")
-        modules.connection.send_message("Owned by: %s" % owners_records)
+        modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records))
     else:
         modules.connection.send_message("Owned by: nobody")
 
@@ -333,11 +333,46 @@ def steam_price(i_string):
     :param i_string: a string with these elements: "<Game Title>"
     :print: parsed answer about Steam title from the API
     """
+    results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
+
+    tuple_string = i_string.partition(' ')
+    sub_cmd = tuple_string[0]
+    sub_arg = tuple_string[2]
+
+    if sub_cmd == "admin":
+        steam_admin(sub_arg)
+        return
+    elif sub_cmd == "played":
+        app_id_details = get_app_id(sub_arg.lower())
+
+        is_steamapp_found = app_id_details[0]
+        if is_steamapp_found:
+            steam_app_id = app_id_details[1][0]
+
+            # Is the game owned by a predefined list of players?
+            owners_records = get_owners(steam_app_id)
+            nb_owners = len(owners_records)
+
+            if nb_owners > 0:
+                modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records))
+            else:
+                modules.connection.send_message("Owned by: nobody")
+        elif not is_steamapp_found and app_id_details[2]:
+            if len(app_id_details[2]) > 1:
+                modules.connection.send_message("Exact title not found, you can try:")
+                for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
+                    modules.connection.send_message(item)
+            else:
+                steam_price("played %s" % app_id_details[2][0])
+        else:
+            modules.connection.send_message("Title not found")
+        return
+    elif sub_cmd == "own":
+        player_owns_game(sub_arg)
+        return
 
     # Main variables
     title_requested = i_string.lower()
-
-    results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
     app_id_details = get_app_id(title_requested)
@@ -349,9 +384,12 @@ def steam_price(i_string):
 
     # Title isn't found
     elif not is_steamapp_found and app_id_details[2]:
-        modules.connection.send_message("Exact title not found, you can try:")
-        for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
-            modules.connection.send_message(item)
+        if len(app_id_details[2]) > 1:
+            modules.connection.send_message("Exact title not found, you can try:")
+            for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
+                modules.connection.send_message(item)
+        else:
+            steam_price(app_id_details[2][0])
 
     else:
         modules.connection.send_message("Title not found")

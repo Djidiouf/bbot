@@ -24,7 +24,7 @@ def clean_url(i_string):
         cleaned_string = cleaned_string.rstrip(each)
     return cleaned_string
 
-def translate_inline(i_string):
+def main(i_string, i_medium, i_alias=None):
     urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', i_string)
 
     # Retrieve player name from config file
@@ -60,7 +60,7 @@ def translate_inline(i_string):
                 for language in lang_output:
                     modules.connection.send_message("Translated in %s: " % (language) +
                                                     "https://translate.google.com/translate?sl=%s&tl=%s&js=y&prev=_t&hl=en&ie=UTF-8&u=%s"
-                                                    % (source_language[0], language, url))
+                                                    % (source_language[0], language, url), i_medium, i_alias)
         else:
             # Disregard such url
             pass

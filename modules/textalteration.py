@@ -15,6 +15,15 @@ def string_cleanup(x, notwanted):
     return x
 
 
+def list_to_string(i_list):
+    list_as_string = str(i_list)[1:-1]
+    list_as_string = string_replace(list_as_string, "', '", " ")
+    list_as_string = string_replace(list_as_string, "'), ('", ", ")
+    list_as_string = string_replace(list_as_string, "('", "")
+    list_as_string = string_replace(list_as_string, "')", "")
+    return list_as_string
+
+
 def string_replace(i_string, pattern, newpattern):
     """
     Substitute specific pattern in a string by another

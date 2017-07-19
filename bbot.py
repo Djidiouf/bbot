@@ -93,10 +93,7 @@ op_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!op"
 quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
 
 # !say
-say_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!say"
-
-# !say (In private: /msg botnick !say)
-say_private_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :" + r"!say"
+say_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!say"
 
 # !steam
 steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steam"
@@ -112,6 +109,7 @@ time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
 
 # !yt
 yt_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt"
+# yt_regex_compiled = re.compile(yt_regex, re.IGNORECASE)
 
 
 def regex_search_arguments(message, expression):
@@ -121,12 +119,10 @@ def regex_search_arguments(message, expression):
     arguments = string_searched.group(0)
     return arguments
 
-def report_error(i_cmd, i_error, i_msg, i_admins_list, is_help_needed=False):
-    modules.connection.send_message(("Call %s: %s" % (i_cmd, i_msg)), "private", i_admins_list)
-    modules.connection.send_message(("Error %s: %s" % (i_cmd, i_error)), "private", i_admins_list)
 
-    if is_help_needed:
-        modules.help.display_help(i_cmd, "error")
+def report_error(i_cmd, i_error, i_msg, i_medium, i_admin):
+    modules.connection.send_message(("Call %s: %s" % (i_cmd, i_msg)), i_medium, i_admin)
+    modules.connection.send_message(("Error %s: %s" % (i_cmd, i_error)), i_medium, i_admin)
 
 
 # connect and join the configured channel
@@ -136,6 +132,10 @@ modules.connection.join_chan(channel)
 # Receive all the data from the server & channel
 while 1:  # infinite loop
     ircmsg = modules.connection.receive_data()  # Receive data from the server
+    if len(ircmsg) == 0:
+        print("Disconnection detected. Attempt to reconnect...")
+        modules.connection.join_chan(channel)
+
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # Remove linebreaks which appear on each message
     decoded_ircmsg = ircmsg.decode('utf-8')  # decode ircmsg from binary to string
 
@@ -149,28 +149,18 @@ while 1:  # infinite loop
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
-    # Determine if private message or channel
+    # Parse decoded_ircmsg for metadata
     try:
-        medium_used_regex = user_message + r" PRIVMSG " + r'.*' + r'(?=.:)'
-        medium_used_searched = re.search(medium_used_regex, decoded_ircmsg, re.IGNORECASE)
-        medium_used = medium_used_searched.group(0).split()[-1]  # split the last word of matching pattern in regex
-        # user_talking_beta = medium_used_searched.group(1)[1:]  # [1:] removes first character (which is btw, a : )
-        # print(user_talking_beta)
-        # print(medium_used)
-    except:
-        pass
-
-    # User talking retrieval
-    try:
-        user_talking_regex = r'(.*)' + r'(?=!.*@)'
-        user_talking_searched = re.search(user_talking_regex, decoded_ircmsg, re.IGNORECASE)
-        user_talking = user_talking_searched.group(0)[1:]  # [1:] removes first character (which is btw, a : )
-        # print(user_talking)
+        metadata_regex = user_message + r" PRIVMSG " + r'.*' + r'(?=.:)'
+        metadata_searched = re.search(metadata_regex, decoded_ircmsg, re.IGNORECASE)
+        medium_used = metadata_searched.group(0).split()[-1]  # split the last word of matching pattern in regex
+        alias_talking = metadata_searched.group(1)[1:]  # [1:] removes first character (which is btw, a : )
+        user_talking = metadata_searched.group(2)[1:]  # [1:] removes first character (which is btw, a ~ )
     except:
         # message must be a system server message
         continue
 
-    # Ignore specific users
+    # Ignore specific users whatever alias they have
     if user_talking:
         if user_talking in ignored_users:
             continue
@@ -183,10 +173,10 @@ while 1:  # infinite loop
     # linkinline
     if decoded_ircmsg.find("http://") != -1 or decoded_ircmsg.find("https://") != -1:
         try:
-            modules.translate.translate_inline(decoded_ircmsg)
+            modules.translate.main(decoded_ircmsg, medium_used, alias_talking)
             pass
         except:
-            report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, admins_list[0], False)
+            report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, "botnick", admins_list[0])
 
     # steaminline
     if decoded_ircmsg.find("http://store.steampowered.com/app/") != -1 or decoded_ircmsg.find(
@@ -195,53 +185,63 @@ while 1:  # infinite loop
             modules.steam.steam_inline(decoded_ircmsg)
             pass
         except:
-            report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, admins_list[0], False)
+            report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
 
     # COMMANDS ---------------------------------------------------------------------------------------------------------
     # !help
     if re.search(help_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!help"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!help")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.help.display_help(input_string, "detailed")
             continue
         except:
-            report_error("!help", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !calc <operations>
     if re.search(calc_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!calc"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!calc")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.calc.main(input_string)
             continue
         except:
-            report_error("!calc", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
     if re.search(imdb_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!imdb"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!imdb")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.imdb.imdb_info(input_string)
             continue
         except:
-            report_error("!imdb", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !meet <Continent/City> <HH:MM>
     if re.search(meet_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!meet"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!meet")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.time.give_hour_equivalence(input_string)
             continue
         except:
-            report_error("!meet", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !money <number> <CODE1>:<CODE2>
     if re.search(money_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!money"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!money")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.money.money_rate(input_string)
             continue
         except:
-            report_error("!money", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !op REGEX
     if re.search(op_regex, decoded_ircmsg, re.IGNORECASE):
@@ -259,63 +259,45 @@ while 1:  # infinite loop
 
     # !say <something>
     if re.search(say_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!say"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!say")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.speak.say(input_string)
             continue
         except:
-            report_error("!say", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
-
-    # !say <something privately>
-    if re.search(say_private_regex, decoded_ircmsg, re.IGNORECASE):
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!say")
-            modules.speak.say(input_string)
-            continue
-        except:
-            report_error("!say private", sys.exc_info()[0], decoded_ircmsg, admins_list[0], False)
+            report_error("%s (%s)" % (cmd, medium_used), sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !steam <Game Title>
     if re.search(steamprice_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!steam"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!steam")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.steam.steam_price(input_string)
             continue
         except:
-            report_error("!steam", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
-
-    # !steamadmin <admin command>
-    if re.search(steamadmin_regex, decoded_ircmsg, re.IGNORECASE):
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!steamadmin")
-            modules.steam.steam(input_string)
-            continue
-        except:
-            report_error("!steamadmin", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
-
-    # !steamown <player> <Game>
-    if re.search(steamown_regex, decoded_ircmsg, re.IGNORECASE):
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!steamown")
-            modules.steam.player_owns_game(input_string)
-            continue
-        except:
-            report_error("!steamown", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !time <Continent/City>
     if re.search(time_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!time"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!time")
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
             modules.time.main(input_string)
             continue
         except:
-            report_error("!time", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
 
     # !yt <ChannelID>
     if re.search(yt_regex, decoded_ircmsg, re.IGNORECASE):
+    # if yt_regex_compiled.search(decoded_ircmsg):
+        cmd = "!yt"
         try:
-            input_string = regex_search_arguments(decoded_ircmsg, "!yt")
-            modules.youtube.main(input_string)
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
+            modules.youtube.main(input_string, medium_used, alias_talking)
             continue
         except:
-            report_error("!yt", sys.exc_info()[0], decoded_ircmsg, admins_list[0], True)
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+            modules.help.display_help(cmd, "error", medium_used, alias_talking)
