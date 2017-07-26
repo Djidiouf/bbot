@@ -21,6 +21,7 @@ import configparser
 import re  # REGEX compiler
 import sys  # system library
 import os
+import time
 
 # Project modules
 import modules.steam  # Contains specific Steam-Valve related functions
@@ -134,6 +135,7 @@ while 1:  # infinite loop
     ircmsg = modules.connection.receive_data()  # Receive data from the server
     if len(ircmsg) == 0:
         print("Disconnection detected. Attempt to reconnect...")
+        time.sleep(5)  # Be easy on the reconnection
         modules.connection.join_chan(channel)
 
     ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # Remove linebreaks which appear on each message
@@ -176,13 +178,14 @@ while 1:  # infinite loop
             modules.translate.main(decoded_ircmsg, medium_used, alias_talking)
             pass
         except:
-            report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, "botnick", admins_list[0])
+            report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
 
     # steaminline
     if decoded_ircmsg.find("http://store.steampowered.com/app/") != -1 or decoded_ircmsg.find(
             "https://store.steampowered.com/app/") != -1:
         try:
-            modules.steam.steam_inline(decoded_ircmsg)
+            url_searched = re.search("https?://(.*\s|$)", decoded_ircmsg, re.IGNORECASE)
+            modules.steam.steam_inline(url_searched.group(0))
             pass
         except:
             report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
@@ -253,7 +256,7 @@ while 1:  # infinite loop
         if user_talking:
             if user_talking in admins_list:
                 modules.connection.send_message("Bye bye bitches!")
-                quit()
+                sys.exit("Bot admin requested a shutdown.")
             else:
                 modules.connection.send_message("*rires*")
 

@@ -9,6 +9,9 @@ import shutil   # Used for OS tools
 import configparser
 import re  # Regular Expression library
 
+# Third-party modules
+import html2text  # install html2text
+
 # Project modules
 import modules.textalteration
 import modules.connection
@@ -242,6 +245,7 @@ def steam_admin(i_string):
 
 def steam_inline(i_string):
     # Parse id from URL
+    print(i_string)
     steam_app_id = get_app_id_from_url(i_string)
 
     country_currency = "fr"  # Currency queried in the Steam API
@@ -304,7 +308,7 @@ def steam_inline(i_string):
             # Substitute with nothing some html
             price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
             html_elements = ["<p>", "<br>", "<br />", "<strong>", "</strong>", "<i>", "</i>", '<img src="(.*)">',
-                             "<h2>", "</h2>", "<li>", "</li>", '<ul class="(.*)">', "</ul>", "<u>", "</u>"
+                             "<h2>", '<h2 class="(.*)">', "</h2>", "<li>", "</li>", '<ul class="(.*)">', "</ul>", "<u>", "</u>"
                              '<a href="(.*)">', "</a>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
@@ -370,6 +374,9 @@ def steam_price(i_string):
     elif sub_cmd == "own":
         player_owns_game(sub_arg)
         return
+    elif sub_cmd == "spy":
+        spy_player(sub_arg)
+        return
 
     # Main variables
     title_requested = i_string.lower()
@@ -395,9 +402,48 @@ def steam_price(i_string):
         modules.connection.send_message("Title not found")
 
 
+def spy_player(i_string):
+    """
+    Responds to a user that inputs "!steam spy <PlayerName>"
+    :param i_string:
+    :return:
+    """
+    player_name = i_string
+    has_played = False
+
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    steam_api_key = config['API_keys']['steam']
+
+    # Retrieve player ID
+    player_id_details = get_player_id(player_name, steam_api_key)
+    if player_id_details is None:
+        return
+
+    owned_games = get_owned_games(player_id_details, steam_api_key)
+
+    if "games" in owned_games["response"]:
+        modules.connection.send_message("In the last 2 weeks %s has played to:" % (player_name))
+        for line in owned_games["response"]["games"]:
+            if "playtime_2weeks" in line:
+                has_played = True
+                steam_app_id = line['appid']
+                steam_appsmeta = get_app_metadata(steam_app_id, "fr")
+                title_corrected = steam_appsmeta['%s' % steam_app_id]["data"]["name"]
+
+                playtime_2weeks = line['playtime_2weeks']
+                playtime_2weeks = playtime_2weeks * 60
+                m, s = divmod(playtime_2weeks, 60)
+                h, m = divmod(m, 60)
+                modules.connection.send_message("%s for %dh%02dmin" % (title_corrected, h, m))
+
+    if not has_played:
+        modules.connection.send_message("Nothing at all.")
+
+
 def player_owns_game(i_string):
     """
-    Responds to a user that inputs "!steamown <PlayerName> <GameTitle>"
+    Responds to a user that inputs "!steam own <PlayerName> <GameTitle>"
     :param i_string:
     :return:
     """

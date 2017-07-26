@@ -7,7 +7,7 @@ import modules.connection
 def print_help_help(i_medium=None, i_alias=None):
     modules.connection.send_message("Usage: !help <handler>", i_medium, i_alias)
     modules.connection.send_message("Known handlers:", i_medium, i_alias)
-    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !steamadmin !steamown !time !yt", i_medium, i_alias)
+    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !time !yt", i_medium, i_alias)
 
 
 def display_help(i_string, mode, i_medium=None, i_alias=None):
@@ -39,26 +39,19 @@ def display_help(i_string, mode, i_medium=None, i_alias=None):
         modules.connection.send_message("Usage: !quit", i_medium, i_alias)
         if mode == "detailed":
             modules.connection.send_message("Purpose: Make me quit IRC", i_medium, i_alias)
-            modules.connection.send_message("Tip: Don't be mean with me please :'(", i_medium, i_alias)
+            modules.connection.send_message("Tip: Don't be mean please :'(", i_medium, i_alias)
     elif i_string == "!say":
         modules.connection.send_message("Usage: !say <something>", i_medium, i_alias)
         if mode == "detailed":
             modules.connection.send_message("Purpose: Make me speak!", i_medium, i_alias)
             modules.connection.send_message("Tip: Be smart and /msg me the command privately", i_medium, i_alias)
     elif i_string == "!steam":
-        modules.connection.send_message("Usage: !steam <Game Title>", i_medium, i_alias)
+        modules.connection.send_message("Usage: !steam <Game_Title>", i_medium, i_alias)
+        modules.connection.send_message("Usage: !steam admin <Admin_Command>", i_medium, i_alias)
+        modules.connection.send_message("Usage: !steam own <Player> <Game_Title>", i_medium, i_alias)
+        modules.connection.send_message("Usage: !steam played <Game_Title>", i_medium, i_alias)
         if mode == "detailed":
-            modules.connection.send_message("Purpose: Give the price of the given Steam game", i_medium, i_alias)
-            modules.connection.send_message("Tip: Title must be exact", i_medium, i_alias)
-    elif i_string == "!steamadmin":
-        modules.connection.send_message("Usage: !steamadmin <Admin Command>", i_medium, i_alias)
-        if mode == "detailed":
-            modules.connection.send_message("Purpose: Give supa powwa", i_medium, i_alias)
-    elif i_string == "!steamown":
-        modules.connection.send_message("Usage: !steamown <Player> <Game Title>", i_medium, i_alias)
-        if mode == "detailed":
-            modules.connection.send_message("Purpose: Tell if someone owns a specific game", i_medium, i_alias)
-            modules.connection.send_message("Tip: Player name and title must be exact", i_medium, i_alias)
+            modules.connection.send_message("Purpose: Expose Steam information", i_medium, i_alias)
     elif i_string == "!time":
         modules.connection.send_message("Usage: !time <TimeZone>", i_medium, i_alias)
         if mode == "detailed":
