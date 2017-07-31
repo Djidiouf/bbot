@@ -34,6 +34,7 @@ import modules.imdb
 import modules.youtube
 import modules.calc
 import modules.translate
+import modules.ping
 
 
 # conf = configparser.RawConfigParser()
@@ -89,6 +90,9 @@ money_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!mone
 
 # !op
 op_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!op"
+
+# !ping
+ping_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!ping"
 
 # !quit
 quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
@@ -158,6 +162,7 @@ while 1:  # infinite loop
         medium_used = metadata_searched.group(0).split()[-1]  # split the last word of matching pattern in regex
         alias_talking = metadata_searched.group(1)[1:]  # [1:] removes first character (which is btw, a : )
         user_talking = metadata_searched.group(2)[1:]  # [1:] removes first character (which is btw, a ~ )
+        user_ip = metadata_searched.group(3)
     except:
         # message must be a system server message
         continue
@@ -184,7 +189,7 @@ while 1:  # infinite loop
     if decoded_ircmsg.find("http://store.steampowered.com/app/") != -1 or decoded_ircmsg.find(
             "https://store.steampowered.com/app/") != -1:
         try:
-            url_searched = re.search("https?://(.*\s|$)", decoded_ircmsg, re.IGNORECASE)
+            url_searched = re.search("https?://[^\s]+", decoded_ircmsg, re.IGNORECASE)
             modules.steam.steam_inline(url_searched.group(0))
             pass
         except:
@@ -250,6 +255,15 @@ while 1:  # infinite loop
     if re.search(op_regex, decoded_ircmsg, re.IGNORECASE):
         modules.connection.send_message("Nice try!")
         continue
+
+    # !ping
+    if re.search(ping_user_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!ping"
+        try:
+            input_string = regex_search_arguments(decoded_ircmsg, cmd)
+            modules.ping.main(input_string)
+        except:
+            modules.ping.main(user_ip)
 
     # !quit REGEX
     if re.search(quit_user_regex, decoded_ircmsg, re.IGNORECASE):

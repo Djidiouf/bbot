@@ -32,11 +32,6 @@ def get_app_id(i_string):
     special_chars= ["®", "™", "Tom Clancy's ", "Sid Meier's "]
     title_requested = modules.textalteration.string_cleanup(i_string, special_chars)
     title_requested = title_requested.lower()
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # in seconds, 86400 = 24hr
 
     # Condition variables
     title_found = False
@@ -45,15 +40,10 @@ def get_app_id(i_string):
     similar_titles = []
     tup_id = ()
 
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
-    steam_appsid_filename = os.path.join(cache_steam_dir, 'steam_appsid.json')  # Name of the local file
+    url_appsid = "http://api.steampowered.com/ISteamApps/GetAppList/v0001/"
+    steam_appsid_filename = 'steam_appsid.json'  # Name of the local file
+    steam_appsid_filename = retrieve_internet_content(url_appsid, steam_appsid_filename)
 
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam apps list ..." % (h, m))
-        urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
     with open(steam_appsid_filename, encoding="utf8") as f:
         steam_appsid = json.load(f)
 
@@ -96,24 +86,9 @@ def get_player_id(i_string, steam_api_key):
     :param steam_api_key:
     :return:
     """
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
-
     url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % (steam_api_key, i_string)
-
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
     steam_player_id_filename = 'steam_player_id_%s.json' % i_string
-    steam_player_id_filename = os.path.join(cache_steam_dir, steam_player_id_filename)  # Name of the local file
-
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_player_id_filename) or os.stat(steam_player_id_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Retrieving ID for player %s ..." % i_string)
-        urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_id_filename)
+    steam_player_id_filename = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
 
     with open(steam_player_id_filename, encoding="utf8") as f:
         steam_player_id = json.load(f)
@@ -133,24 +108,9 @@ def get_app_metadata(steam_id, cc_code):
     :param cc_code:
     :return:
     """
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
-
     url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (steam_id, cc_code)
-
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
     steam_appsmeta_filename = 'steam_appsmeta_%s.json' % steam_id
-    steam_appsmeta_filename = os.path.join(cache_steam_dir, steam_appsmeta_filename)  # Name of the local file
-
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Title found (%s), retrieving last metadata ..." % steam_id)
-        urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
+    steam_appsmeta_filename = retrieve_internet_content(url_steam_appsmeta, steam_appsmeta_filename)
 
     with open(steam_appsmeta_filename, encoding="utf8") as f:
         steam_appsmeta = json.load(f)
@@ -165,29 +125,36 @@ def get_owned_games(player_id, steam_api_key):
     :param steam_api_key:
     :return:
     """
+    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
+    steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
+    steam_player_meta_filename = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
+
+    with open(steam_player_meta_filename, encoding="utf8") as f:
+        steam_player_meta = json.load(f)
+
+    return steam_player_meta
+
+
+def retrieve_internet_content(i_url, i_filename):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     # Time variables
     now = time.time()
     cache_age = 86400  # 86400 = 24hr
 
-    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
+    url = i_url
 
     # Method CACHE: Retrieve and Store local file --------------
     if not os.path.exists(cache_steam_dir):  # Test if the directory exists
         os.makedirs(cache_steam_dir)
-    steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
-    steam_player_meta_filename = os.path.join(cache_steam_dir, steam_player_meta_filename)  # Name of the local file
+    filename_path = os.path.join(cache_steam_dir, i_filename)  # Name of the local file
 
     # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_player_meta_filename) or os.stat(steam_player_meta_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Player found (%s), retrieving last metadata ..." % player_id)
-        urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_meta_filename)
+    if not os.path.isfile(filename_path) or os.stat(filename_path).st_mtime < (now - cache_age):
+        urllib.request.urlretrieve(url, filename=filename_path)
 
-    with open(steam_player_meta_filename, encoding="utf8") as f:
-        steam_player_meta = json.load(f)
-
-    return steam_player_meta
+    content = filename_path
+    return content
 
 
 def get_owners(steam_id):
@@ -435,7 +402,7 @@ def spy_player(i_string):
                 playtime_2weeks = playtime_2weeks * 60
                 m, s = divmod(playtime_2weeks, 60)
                 h, m = divmod(m, 60)
-                modules.connection.send_message("%s for %dh%02dmin" % (title_corrected, h, m))
+                modules.connection.send_message("%s (%dh%02dmin)" % (title_corrected, h, m))
 
     if not has_played:
         modules.connection.send_message("Nothing at all.")

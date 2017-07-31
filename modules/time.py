@@ -40,7 +40,7 @@ def give_time(tz_string, i_delta=None):
     """
 
     tz = tz_string
-    format = "%H:%M - %Z%z"
+    format = "%H:%M"
     # format = "%Y-%m-%d - %H:%M:%S - %Z%z"  # full format
 
     try:
@@ -51,7 +51,7 @@ def give_time(tz_string, i_delta=None):
             if i_delta >= 0:
                 i_delta_sign = "+"
             time_utc = time_utc + timedelta(hours=i_delta)
-            modules.connection.send_message(time_utc.strftime(format) + " - %s (Adjusted by %s%s hour-s)" % (tz, i_delta_sign, i_delta))
+            modules.connection.send_message(time_utc.strftime(format) + " - %s %s%s" % (tz, i_delta_sign, i_delta))
         else:
             modules.connection.send_message(time_utc.strftime(format) + " - %s" % tz)
     except pytz.exceptions.UnknownTimeZoneError:
@@ -69,12 +69,17 @@ def give_hour_equivalence(i_string):
     :print: time in different timezones
     """
 
-    # divide a string in a tuple: 'str1', 'separator', 'str2'
+    # Divide a string in a tuple: 'str1', 'separator', 'str2'
     tuple_string = i_string.partition(' ')
-    tz_requested = tuple_string[0]
-    time_string = tuple_string[2]
 
-    # divide a string in a tuple: 'str1', 'separator', 'str2'
+    if ':' in tuple_string[0]:  # Process either !meet Europe/Oslo 10:00 or !meet 10:00 Europe/Oslo
+        time_string = tuple_string[0]
+        tz_requested = tuple_string[2]
+    else:
+        time_string = tuple_string[2]
+        tz_requested = tuple_string[0]
+
+    # Divide a string in a tuple: 'str1', 'separator', 'str2'
     tuple_time = time_string.partition(':')
     simple_hour = tuple_time[0]
     simple_minute = tuple_time[2]
@@ -98,7 +103,7 @@ def give_hour_equivalence(i_string):
     hour = int(simple_hour)      # Need to be int and not string
     minute = int(simple_minute)  # Need to be int and not string
 
-    format = "%H:%M - %Z%z"
+    format = "%H:%M"
     # format = "%Y-%m-%d - %H:%M:%S - %Z%z"  # full format
 
     # modules.connection.send_message("DEBUG req: " + str(hour) +"H : " + str(minute) + "M")
