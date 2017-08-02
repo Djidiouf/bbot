@@ -22,11 +22,13 @@ def ping(i_hostname):
     else:
         command = "ping " + i_hostname + " -i " + str(speed) + " -c " + str(iteration) + " -W " + str(timeout)
 
-    process = subprocess.Popen(command, stdout=subprocess.PIPE)
-    matches = re.match(b'.*time(=|<)([0-9]+)ms.*', process.stdout.read(), re.DOTALL)
+    process = subprocess.Popen(command, stdout = subprocess.PIPE, shell=True)
+    matches = process.stdout.read()
+    # matches = re.match(b'.*time(=|<)([0-9]+)ms.*', process.stdout.read(), re.DOTALL)
 
     if matches:
-        results = matches.group(0).decode('utf-8')  # Decode bytes
+        # results = matches.group(0).decode('utf-8')  # Decode bytes
+        results = matches.decode('utf-8')  # Decode bytes
         results = results.splitlines()       # Split string when \n \r\n is detected
         return results
     else:
