@@ -16,20 +16,26 @@ def ping(i_hostname):
     timeout = 3  # in seconds
     speed = 0.5
     iteration = 4
+    is_ipv6 = False
+
+    # is IPv6?
+    if ":" in i_hostname:
+        is_ipv6 = True
 
     if platform.system() == "Windows":
-        command = "ping " + i_hostname + " -n " + str(iteration) + " -w " + str(timeout * 1000)
+        command = "ping " + i_hostname + " -n " + str(iteration) + " -w " + str(timeout * 1000)  # works for ipv4 or 6
     else:
-        command = "ping " + i_hostname + " -i " + str(speed) + " -c " + str(iteration) + " -W " + str(timeout)
+        if is_ipv6:
+            command = "ping6 " + i_hostname + " -i " + str(speed) + " -c " + str(iteration) + " -W " + str(timeout)
+        else:
+            command = "ping " + i_hostname + " -i " + str(speed) + " -c " + str(iteration) + " -W " + str(timeout)
 
     process = subprocess.Popen(command, stdout = subprocess.PIPE, shell=True)
     matches = process.stdout.read()
-    # matches = re.match(b'.*time(=|<)([0-9]+)ms.*', process.stdout.read(), re.DOTALL)
 
     if matches:
-        # results = matches.group(0).decode('utf-8')  # Decode bytes
         results = matches.decode('utf-8')  # Decode bytes
-        results = results.splitlines()       # Split string when \n \r\n is detected
+        results = results.splitlines()  # Split string when \n \r\n is detected
         return results
     else:
         results = ["An error occurred"]

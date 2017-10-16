@@ -37,7 +37,8 @@ def main(i_string, i_medium, i_alias=None):
     for url in urls:
         url = clean_url(url)
 
-        webpage_src = requests.get(url)  # Retrieve URL data
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:55.0) Gecko/20100101 Firefox/55.0'}
+        webpage_src = requests.get(url, headers=headers)  # Retrieve URL data
 
         # Check if data contain text or not
         if "text/html" in webpage_src.headers["content-type"]:
@@ -52,7 +53,9 @@ def main(i_string, i_medium, i_alias=None):
 
             languages_detected = langdetect.detect_langs(webpage)
 
-            # modules.connection.send_message( url + " — Language probability: " + str(languages_detected)[1:-1])
+            # Debug
+            modules.connection.send_message(webpage.split('\n', 1)[0])
+            modules.connection.send_message( url + " — Language probability: " + str(languages_detected)[1:-1])
 
             source_language = str(languages_detected[0]).split(":")
 

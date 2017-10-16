@@ -7,7 +7,7 @@ import modules.connection
 def print_help_help(i_medium=None, i_alias=None):
     modules.connection.send_message("Usage: !help <handler>", i_medium, i_alias)
     modules.connection.send_message("Known handlers:", i_medium, i_alias)
-    modules.connection.send_message("!help !imdb !meet !money !quit !say !steam !time !yt", i_medium, i_alias)
+    modules.connection.send_message("!calc !imdb !meet !money !ping !quit !say !steam !time !yt", i_medium, i_alias)
 
 
 def display_help(i_string, mode, i_medium=None, i_alias=None):
@@ -35,6 +35,11 @@ def display_help(i_string, mode, i_medium=None, i_alias=None):
         if mode == "detailed":
             modules.connection.send_message("Purpose: Convert an amount from one currency to another", i_medium, i_alias)
             modules.connection.send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217", i_medium, i_alias)
+    elif i_string == "!ping":
+        modules.connection.send_message("Usage: !ping <optional_ip>", i_medium, i_alias)
+        if mode == "detailed":
+            modules.connection.send_message("Purpose: Make me ping either you or a given IP/DNS if possible", i_medium, i_alias)
+            modules.connection.send_message("Tip: Works for IPv4 or IPv6", i_medium, i_alias)
     elif i_string == "!quit":
         modules.connection.send_message("Usage: !quit", i_medium, i_alias)
         if mode == "detailed":

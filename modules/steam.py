@@ -140,7 +140,7 @@ def retrieve_internet_content(i_url, i_filename):
 
     # Time variables
     now = time.time()
-    cache_age = 86400  # 86400 = 24hr
+    cache_age = 1800  # 1800 = 30 min ; 86400 = 24hr
 
     url = i_url
 
