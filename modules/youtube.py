@@ -91,5 +91,5 @@ def main(i_string, i_medium, i_alias=None):
         modules.connection.send_message("Bad request, (perhaps the YT API key)", i_medium, i_alias)
         return
     except MyExceptionYtNoExistence as e:
-        modules.connection.send_message(e.args)
+        modules.connection.send_message("%s" % e.args, i_medium, i_alias)
         return

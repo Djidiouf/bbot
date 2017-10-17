@@ -32,6 +32,7 @@ import modules.connection
 import modules.help
 import modules.imdb
 import modules.youtube
+import modules.aws
 import modules.calc
 import modules.translate
 import modules.ping
@@ -59,6 +60,7 @@ botnick = config['bot_configuration']['botnick']
 # admins_list = config.get('bot_configuration', 'admin')
 admins_list = config['bot_configuration']['admins'].split(",")
 ignored_users = config['bot_configuration']['ignored_users'].split(",")
+aws_allowed_users = config['aws']['allowed_users'].split(",")
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
@@ -73,6 +75,9 @@ botnick_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :"
 channel_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :"
 
 # commands
+# !aws
+aws_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!aws"
+
 # !calc
 calc_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!calc"
 
@@ -206,6 +211,22 @@ while 1:  # infinite loop
         except:
             report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
             modules.help.display_help(cmd, "error", medium_used, alias_talking)
+
+    # !aws <operations>
+    if re.search(aws_regex, decoded_ircmsg, re.IGNORECASE):
+        cmd = "!aws"
+
+        if user_talking:
+            if user_talking in aws_allowed_users:
+                try:
+                    input_string = regex_search_arguments(decoded_ircmsg, cmd)
+                    modules.aws.main(input_string, medium_used, alias_talking)
+                    continue
+                except:
+                    report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+                    modules.help.display_help(cmd, "error", medium_used, alias_talking)
+            else:
+                modules.connection.send_message("Sorry, you are not allowed to use this command.")
 
     # !calc <operations>
     if re.search(calc_regex, decoded_ircmsg, re.IGNORECASE):
