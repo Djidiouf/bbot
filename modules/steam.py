@@ -9,9 +9,13 @@ import shutil   # Used for OS tools
 import configparser
 import re  # Regular Expression library
 
+# Third-party modules
+import html2text  # install html2text
+
 # Project modules
 import modules.textalteration
 import modules.connection
+import modules.steam_secondary
 
 
 def get_app_id(i_string):
@@ -25,12 +29,9 @@ def get_app_id(i_string):
     'zwioq' (False, (), [])
     """
     # Main variables
-    title_requested = i_string.lower()
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
+    special_chars= ["®", "™", "Tom Clancy's ", "Sid Meier's "]
+    title_requested = modules.textalteration.string_cleanup(i_string, special_chars)
+    title_requested = title_requested.lower()
 
     # Condition variables
     title_found = False
@@ -39,20 +40,16 @@ def get_app_id(i_string):
     similar_titles = []
     tup_id = ()
 
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
-    steam_appsid_filename = os.path.join(cache_steam_dir, 'steam_appsid.json')  # Name of the local file
+    url_appsid = "http://api.steampowered.com/ISteamApps/GetAppList/v0001/"
+    steam_appsid_filename = 'steam_appsid.json'  # Name of the local file
+    steam_appsid_filename = retrieve_internet_content(url_appsid, steam_appsid_filename)
 
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_appsid_filename) or os.stat(steam_appsid_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Cache outdated (> %dhr %02dmin), retrieving new Steam apps list ..." % (h, m))
-        urllib.request.urlretrieve('http://api.steampowered.com/ISteamApps/GetAppList/v0001/', filename=steam_appsid_filename)
     with open(steam_appsid_filename, encoding="utf8") as f:
         steam_appsid = json.load(f)
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
+        line['name'] = modules.textalteration.string_cleanup(line['name'], special_chars)
         if line['name'].lower() == title_requested:
             title_found = True
 
@@ -61,8 +58,13 @@ def get_app_id(i_string):
             title_corrected = line['name']  # Ensure that the correct case is displayed in the future
             tup_id = steam_app_id, title_corrected
 
+            return title_found, tup_id  # End of loop if found
+
         if line['name'].lower().startswith(title_requested):
             similar_titles.append(line['name'])  # Add each match to a list
+
+    # Sort similar_titles list alphabetically
+    similar_titles = sorted(similar_titles, key=str.lower)
 
     result = title_found, tup_id, similar_titles
     return result
@@ -70,7 +72,7 @@ def get_app_id(i_string):
 
 def get_app_id_from_url(i_string):
     # divide a string in a tuple: 'str1', 'separator', 'str2'
-    parse_url = modules.textalteration.string_split(i_string, "/")
+    parse_url = modules.textalteration.string_split(i_string, "/", "?")
     steam_app_id = str(parse_url[4])  # Give app id
     steam_app_id = re.sub("[^0-9]", "", steam_app_id) # Remove non numeric characters
     return steam_app_id
@@ -84,24 +86,9 @@ def get_player_id(i_string, steam_api_key):
     :param steam_api_key:
     :return:
     """
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
-
     url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % (steam_api_key, i_string)
-
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
     steam_player_id_filename = 'steam_player_id_%s.json' % i_string
-    steam_player_id_filename = os.path.join(cache_steam_dir, steam_player_id_filename)  # Name of the local file
-
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_player_id_filename) or os.stat(steam_player_id_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Retrieving ID for player %s ..." % i_string)
-        urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_id_filename)
+    steam_player_id_filename = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
 
     with open(steam_player_id_filename, encoding="utf8") as f:
         steam_player_id = json.load(f)
@@ -121,24 +108,9 @@ def get_app_metadata(steam_id, cc_code):
     :param cc_code:
     :return:
     """
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
-
     url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (steam_id, cc_code)
-
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
     steam_appsmeta_filename = 'steam_appsmeta_%s.json' % steam_id
-    steam_appsmeta_filename = os.path.join(cache_steam_dir, steam_appsmeta_filename)  # Name of the local file
-
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_appsmeta_filename) or os.stat(steam_appsmeta_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Title found (%s), retrieving last metadata ..." % steam_id)
-        urllib.request.urlretrieve(url_steam_appsmeta, filename=steam_appsmeta_filename)
+    steam_appsmeta_filename = retrieve_internet_content(url_steam_appsmeta, steam_appsmeta_filename)
 
     with open(steam_appsmeta_filename, encoding="utf8") as f:
         steam_appsmeta = json.load(f)
@@ -153,29 +125,36 @@ def get_owned_games(player_id, steam_api_key):
     :param steam_api_key:
     :return:
     """
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
-    cache_age = 86400  # 86400 = 24hr
-
-    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&format=json' % (steam_api_key, player_id)
-
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
-        os.makedirs(cache_steam_dir)
+    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
     steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
-    steam_player_meta_filename = os.path.join(cache_steam_dir, steam_player_meta_filename)  # Name of the local file
-
-    # Download the file if it doesn't exist or is too old
-    if not os.path.isfile(steam_player_meta_filename) or os.stat(steam_player_meta_filename).st_mtime < (now - cache_age):
-        # DEBUG modules.connection.send_message("Player found (%s), retrieving last metadata ..." % player_id)
-        urllib.request.urlretrieve(url_steam_player_meta, filename=steam_player_meta_filename)
+    steam_player_meta_filename = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
 
     with open(steam_player_meta_filename, encoding="utf8") as f:
         steam_player_meta = json.load(f)
 
     return steam_player_meta
+
+
+def retrieve_internet_content(i_url, i_filename):
+    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
+
+    # Time variables
+    now = time.time()
+    cache_age = 1800  # 1800 = 30 min ; 86400 = 24hr
+
+    url = i_url
+
+    # Method CACHE: Retrieve and Store local file --------------
+    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
+        os.makedirs(cache_steam_dir)
+    filename_path = os.path.join(cache_steam_dir, i_filename)  # Name of the local file
+
+    # Download the file if it doesn't exist or is too old
+    if not os.path.isfile(filename_path) or os.stat(filename_path).st_mtime < (now - cache_age):
+        urllib.request.urlretrieve(url, filename=filename_path)
+
+    content = filename_path
+    return content
 
 
 def get_owners(steam_id):
@@ -200,7 +179,7 @@ def get_owners(steam_id):
         # Retrieve player ID
         player_id_details = get_player_id(player_name, steam_api_key)
         if player_id_details is None:
-           return
+            return
 
         owned_games = get_owned_games(player_id_details, steam_api_key)
 
@@ -222,10 +201,10 @@ def get_owners(steam_id):
     return results
 
 
-def steam(i_string):
+def steam_admin(i_string):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
-    if i_string.lower() == "@rm-cache":
+    if i_string.lower() == "rm-cache":
         shutil.rmtree(cache_steam_dir)
         modules.connection.send_message("Cache has been deleted")
         return  # Use ** return ** if in a function, exit() otherwise
@@ -233,6 +212,7 @@ def steam(i_string):
 
 def steam_inline(i_string):
     # Parse id from URL
+    print(i_string)
     steam_app_id = get_app_id_from_url(i_string)
 
     country_currency = "fr"  # Currency queried in the Steam API
@@ -245,12 +225,23 @@ def steam_inline(i_string):
     if "data" in steam_appsmeta[steam_app_id]:
         title_corrected = steam_appsmeta[steam_app_id]["data"]["name"]
 
+        if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
+            price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
+            string_metacritic=" — Metacritic: %s" % price_metacritic_score
+        else:
+            string_metacritic=""
+
+        modules.connection.send_message(title_corrected + string_metacritic)
+
+        # Give Steam price
         if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
             # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
             price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
             price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
             price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
             price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
+            if price_currency == 'EUR':
+                price_currency = '€'
 
             price_initial = float(price_initial)
             price_initial *= 0.01  # Price was given in cents, switch to a more readable format
@@ -260,29 +251,36 @@ def steam_inline(i_string):
 
             # Any discount on Steam?
             if price_discount > 0:
-                string_discount = " (-%i%% of %.2f %s)" % (
+                string_discount = " (-%i%% of %.2f%s)" % (
                                             price_discount,price_initial, price_currency)
             else:
                 string_discount = ""
 
-
-            modules.connection.send_message("%s costs %.2f %s" % (
-            title_corrected, price_final, price_currency) + string_discount)
+            modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount
+                                            + " — http://store.steampowered.com/app/%s" % steam_app_id)
         else:
-            modules.connection.send_message("No price information for this title")
+            modules.connection.send_message("Steam: Not on sale" + " — http://store.steampowered.com/app/%s" % steam_app_id)
+
+        # Give AKS price
+        try:
+            aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
+            if aks_price_data != None:
+                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+        except:
+            pass
 
         if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
             price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
             # Substitute with nothing some html
-            html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
+            price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
+            html_elements = ["<p>", "<br>", "<br />", "<strong>", "</strong>", "<i>", "</i>", '<img src="(.*)">',
+                             "<h2>", '<h2 class="(.*)">', "</h2>", "<li>", "</li>", '<ul class="(.*)">', "</ul>", "<u>", "</u>"
+                             '<a href="(.*)">', "</a>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
 
-        if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
-            price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-            modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
     else:
         modules.connection.send_message("No info available for this title")
 
@@ -292,12 +290,7 @@ def steam_inline(i_string):
 
     if nb_owners > 0:
         # Cleanup
-        owners_records = str(owners_records)[1:-1]
-        owners_records = modules.textalteration.string_replace(owners_records, "', '", " ")
-        owners_records = modules.textalteration.string_replace(owners_records, "'), ('", ", ")
-        owners_records = modules.textalteration.string_replace(owners_records, "('", "")
-        owners_records = modules.textalteration.string_replace(owners_records, "')", "")
-        modules.connection.send_message("Owned by: %s" % owners_records)
+        modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records))
     else:
         modules.connection.send_message("Owned by: nobody")
 
@@ -311,12 +304,49 @@ def steam_price(i_string):
     :param i_string: a string with these elements: "<Game Title>"
     :print: parsed answer about Steam title from the API
     """
+    results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
+
+    tuple_string = i_string.partition(' ')
+    sub_cmd = tuple_string[0]
+    sub_arg = tuple_string[2]
+
+    if sub_cmd == "admin":
+        steam_admin(sub_arg)
+        return
+    elif sub_cmd == "played":
+        app_id_details = get_app_id(sub_arg.lower())
+
+        is_steamapp_found = app_id_details[0]
+        if is_steamapp_found:
+            steam_app_id = app_id_details[1][0]
+
+            # Is the game owned by a predefined list of players?
+            owners_records = get_owners(steam_app_id)
+            nb_owners = len(owners_records)
+
+            if nb_owners > 0:
+                modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records))
+            else:
+                modules.connection.send_message("Owned by: nobody")
+        elif not is_steamapp_found and app_id_details[2]:
+            if len(app_id_details[2]) > 1:
+                modules.connection.send_message("Exact title not found, you can try:")
+                for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
+                    modules.connection.send_message(item)
+            else:
+                steam_price("played %s" % app_id_details[2][0])
+        else:
+            modules.connection.send_message("Title not found")
+        return
+    elif sub_cmd == "own":
+        player_owns_game(sub_arg)
+        return
+    elif sub_cmd == "spy":
+        spy_player(sub_arg)
+        return
 
     # Main variables
     title_requested = i_string.lower()
-
-    country_currency = "fr"  # Currency queried in the Steam API
-    results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
 
     # Retrieve all information, get: (True, ('252490', 'Rust'), ['Rusty Hearts', 'Rusty Hearts Meilin Starter'))
     app_id_details = get_app_id(title_requested)
@@ -324,76 +354,63 @@ def steam_price(i_string):
 
     if is_steamapp_found:
         steam_app_id = app_id_details[1][0]
-        title_corrected = app_id_details[1][1]
-
-        # Retrieve all metadata of a specified Steam app
-        steam_appsmeta = get_app_metadata(steam_app_id, country_currency)
-
-        # Test of keys existence
-        if "data" in steam_appsmeta[steam_app_id]:
-            if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
-                # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
-                price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
-                price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
-                price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
-                price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
-
-                price_initial = float(price_initial)
-                price_initial *= 0.01  # Price was given in cents, switch to a more readable format
-                price_discount = int(price_discount)
-                price_final = float(price_final)
-                price_final *= 0.01  # Price was given in cents, switch to a more readable format
-
-                modules.connection.send_message("%s costs %.2f %s " % (title_corrected, price_final, price_currency) + "(from: %.2f %s , discount: %i%%)" % (price_initial, price_currency, price_discount))
-            else:
-                modules.connection.send_message("No price information for this title")
-
-            if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
-                price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
-
-                # Substitute with nothing some html
-                html_elements = ["<p>", "<br />", "<strong>", "</strong>", "<i>", "</i>", "<img (.*)>"]
-                price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
-
-                modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
-
-            if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
-                price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-                modules.connection.send_message("Metacritic: %s" % price_metacritic_score)
-        else:
-            modules.connection.send_message("No info available for this title")
-
-        # Display the Steam Store url of the title requested
-        modules.connection.send_message("SteamStore: http://store.steampowered.com/app/%s?cc=fr" % steam_app_id)
-
-        # Is the game owned by a predefined list of players?
-        owners_records = get_owners(steam_app_id)
-        nb_owners = len(owners_records)
-
-        if nb_owners > 0:
-            # Cleanup
-            owners_records = str(owners_records)[1:-1]
-            owners_records = modules.textalteration.string_replace(owners_records, "', '", " ")
-            owners_records = modules.textalteration.string_replace(owners_records, "'), ('", ", ")
-            owners_records = modules.textalteration.string_replace(owners_records, "('", "")
-            owners_records = modules.textalteration.string_replace(owners_records, "')", "")
-            modules.connection.send_message("Owned by: %s" % owners_records)
-        else:
-            modules.connection.send_message("Owned by: nobody")
+        steam_inline("http://store.steampowered.com/app/%s" % steam_app_id)
 
     # Title isn't found
     elif not is_steamapp_found and app_id_details[2]:
-        modules.connection.send_message("Exact title not found, you can try:")
-        for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
-            modules.connection.send_message(item)
+        if len(app_id_details[2]) > 1:
+            modules.connection.send_message("Exact title not found, you can try:")
+            for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
+                modules.connection.send_message(item)
+        else:
+            steam_price(app_id_details[2][0])
 
     else:
         modules.connection.send_message("Title not found")
 
 
+def spy_player(i_string):
+    """
+    Responds to a user that inputs "!steam spy <PlayerName>"
+    :param i_string:
+    :return:
+    """
+    player_name = i_string
+    has_played = False
+
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    steam_api_key = config['API_keys']['steam']
+
+    # Retrieve player ID
+    player_id_details = get_player_id(player_name, steam_api_key)
+    if player_id_details is None:
+        return
+
+    owned_games = get_owned_games(player_id_details, steam_api_key)
+
+    if "games" in owned_games["response"]:
+        modules.connection.send_message("In the last 2 weeks %s has played to:" % (player_name))
+        for line in owned_games["response"]["games"]:
+            if "playtime_2weeks" in line:
+                has_played = True
+                steam_app_id = line['appid']
+                steam_appsmeta = get_app_metadata(steam_app_id, "fr")
+                title_corrected = steam_appsmeta['%s' % steam_app_id]["data"]["name"]
+
+                playtime_2weeks = line['playtime_2weeks']
+                playtime_2weeks = playtime_2weeks * 60
+                m, s = divmod(playtime_2weeks, 60)
+                h, m = divmod(m, 60)
+                modules.connection.send_message("%s (%dh%02dmin)" % (title_corrected, h, m))
+
+    if not has_played:
+        modules.connection.send_message("Nothing at all.")
+
+
 def player_owns_game(i_string):
     """
-    Responds to a user that inputs "!steamown <PlayerName> <GameTitle>"
+    Responds to a user that inputs "!steam own <PlayerName> <GameTitle>"
     :param i_string:
     :return:
     """

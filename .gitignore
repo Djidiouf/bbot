@@ -4,9 +4,10 @@
 
 ## Directory-based project format:
 .idea/
+__pycache__/
 
 ## Cache directory
 cache-steam/
 
 ## Config file
-config.py
+config.cfg

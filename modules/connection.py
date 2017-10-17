@@ -5,37 +5,31 @@ import configparser
 import ssl
 import os
 
-# list of SSL ports for IRC
-irc_ssl_ports = [6697, 7070]
 
-
-def send_message(msg):
+def send_message(i_msg, i_medium=None, i_alias=None):
         """
         Transform a message in input into an encoded message send through IRC socket
 
-        :param msg: string needed to be encoded and sent on IRC
+        :param i_msg: string needed to be encoded and sent on IRC
+        :param i_medium: channel or private
+        :param i_alias: receiver of the message if any
         :return:
         """
-        chan = config['bot_configuration']['channel']
-        ircsock.send(bytes("PRIVMSG %s :" % chan + msg + "\r\n", "UTF-8"))
+        botnick = config['bot_configuration']['botnick']
+        channel = config['bot_configuration']['channel']
 
+        if i_medium == botnick:
+            ircsock.send(bytes("PRIVMSG %s :" % i_alias + i_msg + "\r\n", "UTF-8"))
+        else:
+            ircsock.send(bytes("PRIVMSG %s :" % channel + i_msg + "\r\n", "UTF-8"))
 
-def send_message_admin(admin_name, msg):
-    """
-    Transform a message in input into an encoded message send through IRC socket
-
-    :param msg: string needed to be encoded and sent on IRC
-    :return:
-    """
-
-    ircsock.send(bytes("PRIVMSG %s :" % admin_name + msg + "\r\n", "UTF-8"))
 
 def ping():  # Respond to server pings
     ircsock.send(bytes("PONG :Pong\n", "UTF-8"))
 
 
-def join_chan(chan):  # Join channel
-    ircsock.send(bytes("JOIN %s\r\n" % chan, "UTF-8"))
+def join_chan(i_chan):  # Join channel
+    ircsock.send(bytes("JOIN %s\r\n" % i_chan, "UTF-8"))
 
 
 def receive_data():
@@ -43,8 +37,12 @@ def receive_data():
     return a
 
 
+# list of SSL ports for IRC
+irc_ssl_ports = [6697, 7070]
+
+# Parsing config
 config = configparser.ConfigParser()
-config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..', 'config.cfg'))  # Absolute path is better
+config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
 server = config['bot_configuration']['server']
 channel = config['bot_configuration']['channel']
 botnick = config['bot_configuration']['botnick']

@@ -26,11 +26,12 @@ def money_rate(i_string):
     amount = float(amount)
 
     # divide a string in a tuple: 'str1', 'separator', 'str2'
-    list_currencies = modules.textalteration.string_split(codes, ":", " in ", " IN ")
+    list_currencies = modules.textalteration.string_split(codes, ":", " in ", " IN ", " ")
     code1 = list_currencies[0].upper()
     code2 = list_currencies[1].upper()
 
-    url = 'https://www.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
+    url = 'https://finance.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
+
 
     # Define where the results could be find and convert the split separator in byte.
     # Can't be simplified as a variable can't be called through bytes
