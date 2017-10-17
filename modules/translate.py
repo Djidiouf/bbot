@@ -55,7 +55,7 @@ def main(i_string, i_medium, i_alias=None):
 
             # Debug
             modules.connection.send_message(webpage.split('\n', 1)[0])
-            modules.connection.send_message( url + " — Language probability: " + str(languages_detected)[1:-1])
+            # modules.connection.send_message( url + " — Language probability: " + str(languages_detected)[1:-1])
 
             source_language = str(languages_detected[0]).split(":")
 
