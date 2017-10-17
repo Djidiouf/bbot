@@ -55,6 +55,7 @@ def asg_desired_capacity(i_string):
             DesiredCapacity=requested_capacity,
             HonorCooldown=True,
         )
+        print(results)
         if results['ResponseMetadata']['HTTPStatusCode'] == 200:
             results = "A request to change the %s desired capacity to %s has been issued" % (requested_server, requested_capacity)
             return results
@@ -71,8 +72,6 @@ def asg_desired_capacity(i_string):
 
 
 def aws(i_string):
-    antispam_timer = 0  # in sec
-
     tuple_string = i_string.partition(' ')
     sub_cmd = tuple_string[0]
     sub_arg = tuple_string[2]
@@ -87,7 +86,7 @@ def aws(i_string):
 
 def main(i_string, i_medium, i_alias=None):
     try:
-        aws_results = aws(i_string.lower)
+        aws_results = aws(i_string.lower())
         modules.connection.send_message("%s" % aws_results, i_medium, i_alias)
 
     except MyExceptionAWSInProgress as e:
