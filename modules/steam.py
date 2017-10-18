@@ -1,13 +1,14 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-import urllib.request  # Open url request on website
 import json  # Library for being able to read Json file
 import time  # anti flood if needed: time.sleep(2)
 import os       # For instruction related to the OS
 import shutil   # Used for OS tools
 import configparser
 import re  # Regular Expression library
+import sys
+import requests  # Open url request on website
 
 # Third-party modules
 import html2text  # install html2text
@@ -29,7 +30,7 @@ def get_app_id(i_string):
     'zwioq' (False, (), [])
     """
     # Main variables
-    special_chars= ["®", "™", "Tom Clancy's ", "Sid Meier's "]
+    special_chars = ["®", "™", "Tom Clancy's ", "Sid Meier's "]
     title_requested = modules.textalteration.string_cleanup(i_string, special_chars)
     title_requested = title_requested.lower()
 
@@ -42,10 +43,7 @@ def get_app_id(i_string):
 
     url_appsid = "http://api.steampowered.com/ISteamApps/GetAppList/v0001/"
     steam_appsid_filename = 'steam_appsid.json'  # Name of the local file
-    steam_appsid_filename = retrieve_internet_content(url_appsid, steam_appsid_filename)
-
-    with open(steam_appsid_filename, encoding="utf8") as f:
-        steam_appsid = json.load(f)
+    steam_appsid = retrieve_internet_content(url_appsid, steam_appsid_filename)
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
@@ -74,7 +72,7 @@ def get_app_id_from_url(i_string):
     # divide a string in a tuple: 'str1', 'separator', 'str2'
     parse_url = modules.textalteration.string_split(i_string, "/", "?")
     steam_app_id = str(parse_url[4])  # Give app id
-    steam_app_id = re.sub("[^0-9]", "", steam_app_id) # Remove non numeric characters
+    steam_app_id = re.sub("[^0-9]", "", steam_app_id)  # Remove non numeric characters
     return steam_app_id
 
 
@@ -88,10 +86,7 @@ def get_player_id(i_string, steam_api_key):
     """
     url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % (steam_api_key, i_string)
     steam_player_id_filename = 'steam_player_id_%s.json' % i_string
-    steam_player_id_filename = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
-
-    with open(steam_player_id_filename, encoding="utf8") as f:
-        steam_player_id = json.load(f)
+    steam_player_id = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
 
     if "steamid" in steam_player_id["response"]:
         player_id = steam_player_id["response"]["steamid"]
@@ -110,10 +105,7 @@ def get_app_metadata(steam_id, cc_code):
     """
     url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (steam_id, cc_code)
     steam_appsmeta_filename = 'steam_appsmeta_%s.json' % steam_id
-    steam_appsmeta_filename = retrieve_internet_content(url_steam_appsmeta, steam_appsmeta_filename)
-
-    with open(steam_appsmeta_filename, encoding="utf8") as f:
-        steam_appsmeta = json.load(f)
+    steam_appsmeta = retrieve_internet_content(url_steam_appsmeta, steam_appsmeta_filename)
 
     return steam_appsmeta
 
@@ -127,34 +119,39 @@ def get_owned_games(player_id, steam_api_key):
     """
     url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
     steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
-    steam_player_meta_filename = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
-
-    with open(steam_player_meta_filename, encoding="utf8") as f:
-        steam_player_meta = json.load(f)
+    steam_player_meta = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
 
     return steam_player_meta
 
 
 def retrieve_internet_content(i_url, i_filename):
-    cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
-
-    # Time variables
-    now = time.time()
+    # Cache properties
+    bbot_work_dir = os.path.dirname(os.path.realpath(sys.argv[0])) + os.sep
+    cache_steam_dir = bbot_work_dir + 'cache-steam'  # Name of the directory where files will be cached
     cache_age = 1800  # 1800 = 30 min ; 86400 = 24hr
+    filename_path = os.path.join(cache_steam_dir, i_filename)  # Name of the local file
 
+    # Other Variables
+    now = time.time()
     url = i_url
 
     # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the directory exists
+    if not os.path.exists(cache_steam_dir):  # Test if the cache directory exists
         os.makedirs(cache_steam_dir)
-    filename_path = os.path.join(cache_steam_dir, i_filename)  # Name of the local file
 
     # Download the file if it doesn't exist or is too old
+    # TODO: Reverse the if logic
     if not os.path.isfile(filename_path) or os.stat(filename_path).st_mtime < (now - cache_age):
-        urllib.request.urlretrieve(url, filename=filename_path)
-
-    content = filename_path
-    return content
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            with open(filename_path, 'wb') as f:
+                f.write(response.content)
+            content = response.json()
+            return content
+    else:
+        with open(filename_path, encoding="utf8") as f:
+            content = json.load(f)
+        return content
 
 
 def get_owners(steam_id):
@@ -192,7 +189,7 @@ def get_owners(steam_id):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    playtime = "(%dh%02dmin)" % (h,m)
+                    playtime = "(%dh%02dmin)" % (h, m)
 
                     tup_time = player_name, playtime
                     results.append(tup_time)
@@ -227,9 +224,9 @@ def steam_inline(i_string):
 
         if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
             price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-            string_metacritic=" — Metacritic: %s" % price_metacritic_score
+            string_metacritic = " — Metacritic: %s" % price_metacritic_score
         else:
-            string_metacritic=""
+            string_metacritic = ""
 
         modules.connection.send_message(title_corrected + string_metacritic)
 
@@ -252,7 +249,7 @@ def steam_inline(i_string):
             # Any discount on Steam?
             if price_discount > 0:
                 string_discount = " (-%i%% of %.2f%s)" % (
-                                            price_discount,price_initial, price_currency)
+                                            price_discount, price_initial, price_currency)
             else:
                 string_discount = ""
 
@@ -264,7 +261,7 @@ def steam_inline(i_string):
         # Give AKS price
         try:
             aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
-            if aks_price_data != None:
+            if aks_price_data is not None:
                 modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
         except:
             pass
@@ -390,7 +387,7 @@ def spy_player(i_string):
     owned_games = get_owned_games(player_id_details, steam_api_key)
 
     if "games" in owned_games["response"]:
-        modules.connection.send_message("In the last 2 weeks %s has played to:" % (player_name))
+        modules.connection.send_message("In the last 2 weeks %s has played to:" % player_name)
         for line in owned_games["response"]["games"]:
             if "playtime_2weeks" in line:
                 has_played = True
@@ -456,7 +453,7 @@ def player_owns_game(i_string):
                     modules.connection.send_message("%s has played %s for %dh %02dmin" % (player_name, title_corrected, h, m))
                     break
 
-        if game_found == False:
+        if game_found is False:
             modules.connection.send_message("%s doesn't own %s" % (player_name, title_corrected))
             return
     elif not is_steamapp_found and app_id_details[2]:

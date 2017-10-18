@@ -55,9 +55,14 @@ def asg_desired_capacity(i_string):
             DesiredCapacity=requested_capacity,
             HonorCooldown=True,
         )
-        print(results)
         if results['ResponseMetadata']['HTTPStatusCode'] == 200:
-            results = "A request to change the %s desired capacity to %s has been issued" % (requested_server, requested_capacity)
+            if requested_capacity == 1:
+                results = "%s will be ready in 3 minutes maximum" % requested_server
+            elif requested_capacity == 0:
+                results = "%s is being shutdown" % requested_server
+            else:
+                results = "A request to change the %s desired capacity to %s has been issued" % (
+                requested_server, requested_capacity)
             return results
         else:
             results = "Error: Unexpected"
