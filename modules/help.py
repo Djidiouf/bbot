@@ -69,6 +69,7 @@ def display_help(i_string, mode, i_medium=None, i_alias=None):
         modules.connection.send_message("Usage: !steam admin <Admin_Command>", i_medium, i_alias)
         modules.connection.send_message("Usage: !steam own <Player> <Game_Title>", i_medium, i_alias)
         modules.connection.send_message("Usage: !steam played <Game_Title>", i_medium, i_alias)
+        modules.connection.send_message("Usage: !steam spy <Player>", i_medium, i_alias)
         if mode == "detailed":
             modules.connection.send_message("Purpose: Expose Steam information", i_medium, i_alias)
 
