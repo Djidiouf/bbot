@@ -3,7 +3,6 @@ __author__ = 'Djidiouf'
 # Python built-in modules
 import configparser
 import os
-import json
 
 # Third-party modules
 import boto3
@@ -11,6 +10,11 @@ from botocore.exceptions import ClientError
 
 # Project modules
 import modules.connection
+
+
+# Read config
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
 
 
 class MyExceptionAWSInProgress(Exception):
@@ -26,10 +30,6 @@ def asg_desired_capacity(i_string):
     tuple_string = i_string.partition(' ')
     requested_server = tuple_string[0]
     requested_capacity = tuple_string[2]
-
-    # Read config
-    config = configparser.ConfigParser()
-    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
 
     # Establish real server name
     if requested_server == "teamspeak":

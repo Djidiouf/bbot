@@ -237,6 +237,7 @@ def steam_inline(i_string):
             price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
             price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
             price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
+
             if price_currency == 'EUR':
                 price_currency = '€'
 
@@ -386,8 +387,10 @@ def spy_player(i_string):
 
     owned_games = get_owned_games(player_id_details, steam_api_key)
 
+    modules.connection.send_message("In the last 2 weeks %s has played:" % player_name)
+    playtime_2_weeks_total = 0
+
     if "games" in owned_games["response"]:
-        modules.connection.send_message("In the last 2 weeks %s has played to:" % player_name)
         for line in owned_games["response"]["games"]:
             if "playtime_2weeks" in line:
                 has_played = True
@@ -399,9 +402,24 @@ def spy_player(i_string):
                 playtime_2weeks = playtime_2weeks * 60
                 m, s = divmod(playtime_2weeks, 60)
                 h, m = divmod(m, 60)
+
                 modules.connection.send_message("%s (%dh%02dmin)" % (title_corrected, h, m))
 
-    if not has_played:
+                playtime_2_weeks_total = playtime_2_weeks_total + playtime_2weeks
+
+    if has_played:
+        # Total
+        m_t, s_t = divmod(playtime_2_weeks_total, 60)
+        h_t, m_t = divmod(m_t, 60)
+
+        # Average
+        playtime_2_weeks_total = playtime_2_weeks_total / 14
+        m_a, s_a = divmod(playtime_2_weeks_total, 60)
+        h_a, m_a = divmod(m_a, 60)
+
+        modules.connection.send_message(
+            "-- For a total of %dh%02dmin (average of %dh%02dmin per day)" % (h_t, m_t, h_a, m_a))
+    else:
         modules.connection.send_message("Nothing at all.")
 
 
@@ -450,7 +468,7 @@ def player_owns_game(i_string):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    modules.connection.send_message("%s has played %s for %dh %02dmin" % (player_name, title_corrected, h, m))
+                    modules.connection.send_message("%s has played %s for %dh%02dmin" % (player_name, title_corrected, h, m))
                     break
 
         if game_found is False:
