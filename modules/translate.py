@@ -9,6 +9,7 @@ import os
 import langdetect  # install langdetect
 import requests  # install requests
 import html2text  # install html2text
+import tldextract  # install tldextract
 
 # Project modules
 import modules.textalteration
@@ -36,6 +37,13 @@ def main(i_string, i_medium, i_alias=None):
 
     for url in urls:
         url = clean_url(url)
+
+        # Ignore specific domains
+        ignored_domains = ("facebook.com", "imgur.com")
+        extracted = tldextract.extract(url)
+        url_domain = "{}.{}".format(extracted.domain, extracted.suffix)
+        if url_domain in ignored_domains:
+            continue  # Disregard such url
 
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:55.0) Gecko/20100101 Firefox/55.0'}
         webpage_src = requests.get(url, headers=headers)  # Retrieve URL data
@@ -65,5 +73,4 @@ def main(i_string, i_medium, i_alias=None):
                                                     "https://translate.google.com/translate?sl=%s&tl=%s&js=y&prev=_t&hl=en&ie=UTF-8&u=%s"
                                                     % (source_language[0], language, url), i_medium, i_alias)
         else:
-            # Disregard such url
-            pass
+            continue  # Disregard such url

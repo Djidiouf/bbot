@@ -33,6 +33,7 @@ import modules.help
 import modules.imdb
 import modules.youtube
 import modules.aws
+import modules.aws_sqs
 import modules.calc
 import modules.translate
 import modules.ping
@@ -155,11 +156,22 @@ while 1:  # infinite loop
         # print(ircmsg)         # binary
         print(decoded_ircmsg)   # string
 
-    # TRACKS -----------------------------------------------------------------------------------------------------------
-    # PING : if the server pings the bot, it will answer
+    # PING : if the server pings the bot, it will answer - Happens every 2min30 on freenode.net
     if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
         modules.connection.ping()
 
+    # AWS SQS Queue ----------------------------------------------------------------------------------------------------
+    # Poll Given SQS queue
+    if config['aws']['sqs_queue']:
+        # print("A polling is made")
+        cmd = "SQS - Retrieve message"
+        try:
+            modules.aws_sqs.main()
+            pass
+        except:
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+
+    # METADATA ---------------------------------------------------------------------------------------------------------
     # Parse decoded_ircmsg for metadata
     try:
         metadata_regex = user_message + r" PRIVMSG " + r'.*' + r'(?=.:)'
@@ -168,14 +180,12 @@ while 1:  # infinite loop
         alias_talking = metadata_searched.group(1)[1:]  # [1:] removes first character (which is btw, a : )
         user_talking = metadata_searched.group(2)[1:]  # [1:] removes first character (which is btw, a ~ )
         user_ip = metadata_searched.group(3)
+
+        if user_talking in ignored_users:  # Ignore specific users whatever alias they have
+            continue
     except:
         # message must be a system server message
         continue
-
-    # Ignore specific users whatever alias they have
-    if user_talking:
-        if user_talking in ignored_users:
-            continue
 
     # INLINE -----------------------------------------------------------------------------------------------------------
     # Hello <botname> <any message>
@@ -339,3 +349,5 @@ while 1:  # infinite loop
         except:
             report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
             modules.help.display_help(cmd, "error", medium_used, alias_talking)
+
+

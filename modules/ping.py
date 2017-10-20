@@ -45,10 +45,10 @@ def ping(i_hostname):
 def main(i_string):
     ping_results = ping(i_string)
 
-    for e in ping_results:
-        if e == "" \
-                or e.startswith("PING") or e.startswith("---") \
-                or e.startswith("Pinging") or e.startswith("Approximate") or e.startswith("Ping statistics"):
+    for line in ping_results:
+        if line == "" \
+                or line.startswith("PING") or line.startswith("---") \
+                or line.startswith("Pinging") or line.startswith("Approximate") or line.startswith("Ping statistics"):
             continue
         else:
-            modules.connection.send_message(e)
+            modules.connection.send_message(line)
