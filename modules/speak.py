@@ -11,7 +11,7 @@ def hello():
     """
     modules.connection.send_message("Hello!")
 
-def say(i_input):
+def main(i_input, i_medium, i_alias=None):
     """
     Responds to an input as "!say <something>"
     :param i_input: whatever people want the bot to say

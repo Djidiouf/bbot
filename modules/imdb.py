@@ -10,7 +10,7 @@ import modules.connection
 import modules.textalteration
 
 
-def imdb_info(i_string):
+def imdb_info(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs:
                                     "!imdb <Guessed Title>"
@@ -49,7 +49,7 @@ def imdb_info(i_string):
         tuple_id = part_one.partition(':')
         imdb_id = tuple_id[2]
         if ' ' in imdb_id:
-            modules.connection.send_message("IMDB IDs don't have any space, ie: tt0411008")
+            modules.connection.send_message("IMDB IDs don't have any space, ie: tt0411008", i_medium, i_alias)
             return
 
         omdb_url_full_detailed = 'http://www.omdbapi.com/?i=%s&plot=short&r=json' % imdb_id
@@ -66,22 +66,22 @@ def imdb_info(i_string):
         if "Title" in omdb_json and "Released" in omdb_json:
             movie_title = omdb_json["Title"]
             movie_released = omdb_json["Released"]
-            modules.connection.send_message("Title: %s (Release date: %s)" % (movie_title, movie_released))
+            modules.connection.send_message("Title: %s (Release date: %s)" % (movie_title, movie_released), i_medium, i_alias)
 
         if "Country" in omdb_json and "Runtime" in omdb_json and "Genre" in omdb_json:
             movie_country = omdb_json["Country"]
             movie_runtime = omdb_json["Runtime"]
             movie_genre = omdb_json["Genre"]
-            modules.connection.send_message("%s - %s - %s" % (movie_country, movie_runtime, movie_genre))
+            modules.connection.send_message("%s - %s - %s" % (movie_country, movie_runtime, movie_genre), i_medium, i_alias)
 
         if "Plot" in omdb_json:
             movie_plot = omdb_json["Plot"]
-            modules.connection.send_message("Plot: %s" % movie_plot)
+            modules.connection.send_message("Plot: %s" % movie_plot, i_medium, i_alias)
 
         if "imdbID" in omdb_json and "imdbRating" in omdb_json:
             movie_imdbid = omdb_json["imdbID"]
             movie_imdbrating = omdb_json["imdbRating"]
-            modules.connection.send_message("imdbID: %s - Rating: %s" % (movie_imdbid, movie_imdbrating))
-            modules.connection.send_message("http://www.imdb.com/title/%s/" % (movie_imdbid))
+            modules.connection.send_message("imdbID: %s - Rating: %s" % (movie_imdbid, movie_imdbrating), i_medium, i_alias)
+            modules.connection.send_message("http://www.imdb.com/title/%s/" % (movie_imdbid), i_medium, i_alias)
     else:
-        modules.connection.send_message("IMDB title not found!")
+        modules.connection.send_message("IMDB title not found!", i_medium, i_alias)

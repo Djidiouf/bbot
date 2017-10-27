@@ -8,7 +8,7 @@ import modules.connection
 import modules.textalteration
 
 
-def money_rate(i_string):
+def main(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs "!money <number> <CODE1>:<CODE2>"
     API used: https://www.google.com/finance/converter
@@ -47,5 +47,5 @@ def money_rate(i_string):
     total = amount * rate
     # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
     # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
-    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate, code2))
+    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate, code2), i_medium, i_alias)
     webpage.close()

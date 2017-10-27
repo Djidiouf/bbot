@@ -21,7 +21,8 @@ class MyExceptionAWSInProgress(Exception):
     """Raise for my specific kind of exception"""
     pass
 
-def lambda_run(i_args):
+
+def lambda_run(i_string):
     results = "Not implemented"
     return results
 
@@ -35,7 +36,7 @@ def asg_desired_capacity(i_string):
     if requested_server == "teamspeak":
         requested_server = config['aws']['teamspeak_asg']
     else:
-        results = "Error: The value %s is invalid" % (requested_server)
+        results = "Error: The value %s is invalid" % requested_server
         return results
 
     # Establish requested capacity
@@ -44,7 +45,7 @@ def asg_desired_capacity(i_string):
     elif requested_capacity == 'off' or requested_capacity == 'down' or requested_capacity == '0':
         requested_capacity = 0
     else:
-        results = "Error: The value %s is invalid" % (requested_capacity)
+        results = "Error: The value %s is invalid" % requested_capacity
         return results
 
     # Run command
@@ -62,7 +63,7 @@ def asg_desired_capacity(i_string):
                 results = "%s is being shutdown" % requested_server
             else:
                 results = "A request to change the %s desired capacity to %s has been issued" % (
-                requested_server, requested_capacity)
+                    requested_server, requested_capacity)
             return results
         else:
             results = "Error: Unexpected"
@@ -90,10 +91,18 @@ def aws(i_string):
 
 
 def main(i_string, i_medium, i_alias=None):
-    try:
-        aws_results = aws(i_string.lower())
-        modules.connection.send_message("%s" % aws_results, i_medium, i_alias)
 
-    except MyExceptionAWSInProgress as e:
-        modules.connection.send_message("%s" % e.args, i_medium, i_alias)
-        return
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    aws_allowed_users = config['aws']['allowed_users'].split(",")
+
+    if i_alias in aws_allowed_users:
+        try:
+            aws_results = aws(i_string.lower())
+            modules.connection.send_message("%s" % aws_results, i_medium, i_alias)
+
+        except MyExceptionAWSInProgress as e:
+            modules.connection.send_message("%s" % e.args, i_medium, i_alias)
+            return
+    else:
+        modules.connection.send_message("Sorry, you are not allowed to use this command.")

@@ -42,7 +42,8 @@ def ping(i_hostname):
         return results
 
 
-def main(i_string):
+def main(i_string, i_medium, i_alias=None):
+
     ping_results = ping(i_string)
 
     for line in ping_results:
@@ -51,4 +52,4 @@ def main(i_string):
                 or line.startswith("Pinging") or line.startswith("Approximate") or line.startswith("Ping statistics"):
             continue
         else:
-            modules.connection.send_message(line)
+            modules.connection.send_message(line, i_medium, i_alias)

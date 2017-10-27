@@ -1,16 +1,25 @@
 __author__ = 'Djidiouf'
 
+# Python built-in modules
+import configparser
+import os
+
 # Project modules
 import modules.connection
 
 
 def print_help_help(i_medium=None, i_alias=None):
-    modules.connection.send_message("Usage: !help <handler>", i_medium, i_alias)
-    modules.connection.send_message("Known handlers:", i_medium, i_alias)
-    modules.connection.send_message("!aws !calc !imdb !meet !money !ping !quit !say !steam !time !yt", i_medium, i_alias)
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    authorised_handlers = config['bot_configuration']['authorised_handlers'].replace(",", " ")
+    authorised_features = config['bot_configuration']['authorised_features'].replace(",", " ")
+
+    modules.connection.send_message("Usage: !help <handler/feature>", i_medium, i_alias)
+    modules.connection.send_message("Authorised handlers: %s" % authorised_handlers, i_medium, i_alias)
+    modules.connection.send_message("Authorised features: %s" % authorised_features, i_medium, i_alias)
 
 
-def display_help(i_string, mode, i_medium=None, i_alias=None):
+def main(i_string, mode, i_medium=None, i_alias=None):
     if i_string == "!help":
         print_help_help(i_medium, i_alias)
 
@@ -49,8 +58,7 @@ def display_help(i_string, mode, i_medium=None, i_alias=None):
     elif i_string == "!ping":
         modules.connection.send_message("Usage: !ping <optional_ip>", i_medium, i_alias)
         if mode == "detailed":
-            modules.connection.send_message("Purpose: Make me ping either you or a given IP/DNS if possible", i_medium, i_alias)
-            modules.connection.send_message("Tip: Works for IPv4 or IPv6", i_medium, i_alias)
+            modules.connection.send_message("Purpose: Make me ping (IPv4 or IPv6) either you or a given IP/DNS if possible", i_medium, i_alias)
 
     elif i_string == "!quit":
         modules.connection.send_message("Usage: !quit", i_medium, i_alias)
@@ -84,5 +92,21 @@ def display_help(i_string, mode, i_medium=None, i_alias=None):
         modules.connection.send_message("Usage: !yt <Display name or ID>", i_medium, i_alias)
         if mode == "detailed":
             modules.connection.send_message("Purpose: Give metadata about a YouTube Channel", i_medium, i_alias)
+
+    elif i_string == "linkinline":
+        modules.connection.send_message("Usage: Type a URL into the chat", i_medium, i_alias)
+        if mode == "detailed":
+            modules.connection.send_message("Purpose: Provide the following services: a Google Translate URL if needed", i_medium, i_alias)
+
+    elif i_string == "steaminline":
+        modules.connection.send_message("Usage: Type a Steam URL into the chat", i_medium, i_alias)
+        if mode == "detailed":
+            modules.connection.send_message("Purpose: Give metadata about a Steam game", i_medium, i_alias)
+
+    elif i_string == "aws_sqs":
+        modules.connection.send_message("Usage: Wait without having to do anything", i_medium, i_alias)
+        if mode == "detailed":
+            modules.connection.send_message("Purpose: Retrieve message from an AWS SQS queue", i_medium, i_alias)
+
     else:
         print_help_help(i_medium, i_alias)
