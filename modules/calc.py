@@ -7,7 +7,7 @@ import modules.connection
 import math
 
 
-def main(i_string):
+def main(i_string, i_medium, i_alias=None):
     math_functions = { # 9.2.1. Number-theoretic and representation functions
                        "ceil": math.ceil,              # math.ceil(x)
                        "copysign": math.copysign,      # math.copysign(x, y)
@@ -65,4 +65,4 @@ def main(i_string):
                        "nan": math.nan}                # math.nan
 
     compute_requested = eval(i_string, {"__builtins__": None}, math_functions)
-    modules.connection.send_message("%s = %f" % (i_string, compute_requested))
+    modules.connection.send_message("%s = %f" % (i_string, compute_requested), i_medium, i_alias)

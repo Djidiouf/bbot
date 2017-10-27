@@ -7,21 +7,21 @@ import os
 
 
 def send_message(i_msg, i_medium=None, i_alias=None):
-        """
-        Transform a message in input into an encoded message send through IRC socket
+    """
+    Transform a message in input into an encoded message send through IRC socket
 
-        :param i_msg: string needed to be encoded and sent on IRC
-        :param i_medium: channel or private
-        :param i_alias: receiver of the message if any
-        :return:
-        """
-        botnick = config['bot_configuration']['botnick']
-        channel = config['bot_configuration']['channel']
+    :param i_msg: string needed to be encoded and sent on IRC
+    :param i_medium: channel or private
+    :param i_alias: receiver of the message if any
+    :return:
+    """
+    botnick = config['bot_configuration']['botnick']
+    channel = config['bot_configuration']['channel']
 
-        if i_medium == botnick:
-            ircsock.send(bytes("PRIVMSG %s :" % i_alias + i_msg + "\r\n", "UTF-8"))
-        else:
-            ircsock.send(bytes("PRIVMSG %s :" % channel + i_msg + "\r\n", "UTF-8"))
+    if i_medium == botnick:
+        ircsock.send(bytes("PRIVMSG %s :" % i_alias + i_msg + "\r\n", "UTF-8"))
+    else:
+        ircsock.send(bytes("PRIVMSG %s :" % channel + i_msg + "\r\n", "UTF-8"))
 
 
 def ping():  # Respond to server pings

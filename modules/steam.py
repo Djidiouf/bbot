@@ -84,16 +84,17 @@ def get_player_id(i_string, steam_api_key):
     :param steam_api_key:
     :return:
     """
+    player_id_is_found = False
+    player_id = False
     url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % (steam_api_key, i_string)
     steam_player_id_filename = 'steam_player_id_%s.json' % i_string
     steam_player_id = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
 
     if "steamid" in steam_player_id["response"]:
         player_id = steam_player_id["response"]["steamid"]
-        return player_id
-    else:
-        modules.connection.send_message("ID not found for player %s" % i_string)
-        return
+        player_id_is_found = True
+
+    return player_id_is_found, player_id
 
 
 def get_app_metadata(steam_id, cc_code):
@@ -175,10 +176,13 @@ def get_owners(steam_id):
 
         # Retrieve player ID
         player_id_details = get_player_id(player_name, steam_api_key)
-        if player_id_details is None:
-            return
+        if player_id_details[0] is False:
+            # modules.connection.send_message("ID not found for player %s" % player_name)
+            tup_time = player_name, "(<PlayerID not found>)"
+            results.append(tup_time)
+            continue
 
-        owned_games = get_owned_games(player_id_details, steam_api_key)
+        owned_games = get_owned_games(player_id_details[1], steam_api_key)
 
         if "games" in owned_games["response"]:
             for line in owned_games["response"]["games"]:
@@ -198,18 +202,18 @@ def get_owners(steam_id):
     return results
 
 
-def steam_admin(i_string):
+def steam_admin(i_string, i_medium, i_alias=None):
     cache_steam_dir = 'cache-steam'  # Name of the directory where files will be cached
 
     if i_string.lower() == "rm-cache":
         shutil.rmtree(cache_steam_dir)
-        modules.connection.send_message("Cache has been deleted")
+        modules.connection.send_message("Cache has been deleted", i_medium, i_alias)
         return  # Use ** return ** if in a function, exit() otherwise
 
 
-def steam_inline(i_string):
+def steam_inline(i_string, i_medium, i_alias=None):
     # Parse id from URL
-    print(i_string)
+    # print(i_string)
     steam_app_id = get_app_id_from_url(i_string)
 
     country_currency = "fr"  # Currency queried in the Steam API
@@ -228,7 +232,7 @@ def steam_inline(i_string):
         else:
             string_metacritic = ""
 
-        modules.connection.send_message(title_corrected + string_metacritic)
+        modules.connection.send_message(title_corrected + string_metacritic, i_medium, i_alias)
 
         # Give Steam price
         if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
@@ -255,15 +259,15 @@ def steam_inline(i_string):
                 string_discount = ""
 
             modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount
-                                            + " — http://store.steampowered.com/app/%s" % steam_app_id)
+                                            + " — http://store.steampowered.com/app/%s" % steam_app_id, i_medium, i_alias)
         else:
-            modules.connection.send_message("Steam: Not on sale" + " — http://store.steampowered.com/app/%s" % steam_app_id)
+            modules.connection.send_message("Steam: Not on sale" + " — http://store.steampowered.com/app/%s" % steam_app_id, i_medium, i_alias)
 
         # Give AKS price
         try:
             aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
             if aks_price_data is not None:
-                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0])
+                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0], i_medium, i_alias)
         except:
             pass
 
@@ -277,10 +281,10 @@ def steam_inline(i_string):
                              '<a href="(.*)">', "</a>"]
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
-            modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]")
+            modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]", i_medium, i_alias)
 
     else:
-        modules.connection.send_message("No info available for this title")
+        modules.connection.send_message("No info available for this title", i_medium, i_alias)
 
     # Is the game owned by a predefined list of players?
     owners_records = get_owners(steam_app_id)
@@ -288,12 +292,12 @@ def steam_inline(i_string):
 
     if nb_owners > 0:
         # Cleanup
-        modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records))
+        modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records), i_medium, i_alias)
     else:
-        modules.connection.send_message("Owned by: nobody")
+        modules.connection.send_message("Owned by: nobody", i_medium, i_alias)
 
 
-def steam_price(i_string):
+def main(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs "!steamprice <Game Title>"
     using Steam API: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
@@ -309,7 +313,7 @@ def steam_price(i_string):
     sub_arg = tuple_string[2]
 
     if sub_cmd == "admin":
-        steam_admin(sub_arg)
+        steam_admin(sub_arg, i_medium, i_alias)
         return
     elif sub_cmd == "played":
         app_id_details = get_app_id(sub_arg.lower())
@@ -323,24 +327,24 @@ def steam_price(i_string):
             nb_owners = len(owners_records)
 
             if nb_owners > 0:
-                modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records))
+                modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records), i_medium, i_alias)
             else:
-                modules.connection.send_message("Owned by: nobody")
+                modules.connection.send_message("Owned by: nobody", i_medium, i_alias)
         elif not is_steamapp_found and app_id_details[2]:
             if len(app_id_details[2]) > 1:
-                modules.connection.send_message("Exact title not found, you can try:")
+                modules.connection.send_message("Exact title not found, you can try:", i_medium, i_alias)
                 for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
-                    modules.connection.send_message(item)
+                    modules.connection.send_message(item, i_medium, i_alias)
             else:
-                steam_price("played %s" % app_id_details[2][0])
+                main("played %s" % app_id_details[2][0], i_medium, i_alias)
         else:
-            modules.connection.send_message("Title not found")
+            modules.connection.send_message("Title not found", i_medium, i_alias)
         return
     elif sub_cmd == "own":
-        player_owns_game(sub_arg)
+        player_owns_game(sub_arg, i_medium, i_alias)
         return
     elif sub_cmd == "spy":
-        spy_player(sub_arg)
+        spy_player(sub_arg, i_medium, i_alias)
         return
 
     # Main variables
@@ -352,22 +356,22 @@ def steam_price(i_string):
 
     if is_steamapp_found:
         steam_app_id = app_id_details[1][0]
-        steam_inline("http://store.steampowered.com/app/%s" % steam_app_id)
+        steam_inline("http://store.steampowered.com/app/%s" % steam_app_id, i_medium, i_alias)
 
     # Title isn't found
     elif not is_steamapp_found and app_id_details[2]:
         if len(app_id_details[2]) > 1:
-            modules.connection.send_message("Exact title not found, you can try:")
+            modules.connection.send_message("Exact title not found, you can try:", i_medium, i_alias)
             for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
-                modules.connection.send_message(item)
+                modules.connection.send_message(item, i_medium, i_alias)
         else:
-            steam_price(app_id_details[2][0])
+            main(app_id_details[2][0], i_medium, i_alias)
 
     else:
-        modules.connection.send_message("Title not found")
+        modules.connection.send_message("Title not found", i_medium, i_alias)
 
 
-def spy_player(i_string):
+def spy_player(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs "!steam spy <PlayerName>"
     :param i_string:
@@ -382,12 +386,13 @@ def spy_player(i_string):
 
     # Retrieve player ID
     player_id_details = get_player_id(player_name, steam_api_key)
-    if player_id_details is None:
+    if player_id_details[0] is False:
+        modules.connection.send_message("ID not found for player %s" % player_name, i_medium, i_alias)
         return
 
-    owned_games = get_owned_games(player_id_details, steam_api_key)
+    owned_games = get_owned_games(player_id_details[1], steam_api_key)
 
-    modules.connection.send_message("In the last 2 weeks %s has played:" % player_name)
+    modules.connection.send_message("In the last 2 weeks %s has played:" % player_name, i_medium, i_alias)
     playtime_2_weeks_total = 0
 
     if "games" in owned_games["response"]:
@@ -403,7 +408,7 @@ def spy_player(i_string):
                 m, s = divmod(playtime_2weeks, 60)
                 h, m = divmod(m, 60)
 
-                modules.connection.send_message("%s (%dh%02dmin)" % (title_corrected, h, m))
+                modules.connection.send_message("%s (%dh%02dmin)" % (title_corrected, h, m), i_medium, i_alias)
 
                 playtime_2_weeks_total = playtime_2_weeks_total + playtime_2weeks
 
@@ -418,12 +423,12 @@ def spy_player(i_string):
         h_a, m_a = divmod(m_a, 60)
 
         modules.connection.send_message(
-            "-- For a total of %dh%02dmin (average of %dh%02dmin per day)" % (h_t, m_t, h_a, m_a))
+            "-- For a total of %dh%02dmin (average of %dh%02dmin per day)" % (h_t, m_t, h_a, m_a), i_medium, i_alias)
     else:
-        modules.connection.send_message("Nothing at all.")
+        modules.connection.send_message("Nothing at all.", i_medium, i_alias)
 
 
-def player_owns_game(i_string):
+def player_owns_game(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs "!steam own <PlayerName> <GameTitle>"
     :param i_string:
@@ -445,7 +450,8 @@ def player_owns_game(i_string):
 
     # Retrieve player ID
     player_id_details = get_player_id(player_name, steam_api_key)
-    if player_id_details is None:
+    if player_id_details[0] is False:
+        modules.connection.send_message("ID not found for player %s" % player_name, i_medium, i_alias)
         return
 
     # Retrieve steam app ID
@@ -456,7 +462,7 @@ def player_owns_game(i_string):
         steam_app_id = int(app_id_details[1][0])
         title_corrected = app_id_details[1][1]
 
-        owned_games = get_owned_games(player_id_details, steam_api_key)
+        owned_games = get_owned_games(player_id_details[1], steam_api_key)
 
         if "games" in owned_games["response"]:
             for line in owned_games["response"]["games"]:
@@ -468,16 +474,16 @@ def player_owns_game(i_string):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    modules.connection.send_message("%s has played %s for %dh%02dmin" % (player_name, title_corrected, h, m))
+                    modules.connection.send_message("%s has played %s for %dh%02dmin" % (player_name, title_corrected, h, m), i_medium, i_alias)
                     break
 
         if game_found is False:
-            modules.connection.send_message("%s doesn't own %s" % (player_name, title_corrected))
+            modules.connection.send_message("%s doesn't own %s" % (player_name, title_corrected), i_medium, i_alias)
             return
     elif not is_steamapp_found and app_id_details[2]:
-        modules.connection.send_message("Exact title not found, you can try:")
+        modules.connection.send_message("Exact title not found, you can try:", i_medium, i_alias)
         for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
-            modules.connection.send_message(item)
+            modules.connection.send_message(item, i_medium, i_alias)
 
     else:
-        modules.connection.send_message("Title not found")
+        modules.connection.send_message("Title not found", i_medium, i_alias)

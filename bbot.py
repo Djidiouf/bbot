@@ -9,48 +9,30 @@
 # -------------------------------------------------------------------------------
 
 # Python built-in modules
-# import argparse  # Add the possibility to have command line arguments
-# # # arguments ---------------------------------------------------------------------
-# # -s <server>  -c "<channel>" -b <bot nickname>
-# parser = argparse.ArgumentParser(description='bbot, a bot without limits')
-# parser.add_argument("-s", "--server", help="Server name", required=True)
-# parser.add_argument("-c", "--channel", help="Channel name", required=True)
-# parser.add_argument("-b", "--botnick", help="bbot nickname", required=True)
-# args = parser.parse_args()
 import configparser
 import re  # REGEX compiler
 import sys  # system library
 import os
 import time
+import importlib
 
 # Project modules
-import modules.steam  # Contains specific Steam-Valve related functions
-import modules.money
-import modules.time
-import modules.speak
-import modules.connection
-import modules.help
-import modules.imdb
-import modules.youtube
 import modules.aws
 import modules.aws_sqs
 import modules.calc
-import modules.translate
+import modules.connection
+import modules.help
+import modules.imdb
+import modules.meet
+import modules.money
 import modules.ping
+import modules.quit
+import modules.speak
+import modules.steam
+import modules.time
+import modules.translate
+import modules.youtube
 
-
-# conf = configparser.RawConfigParser()
-# conf.add_section('bot_configuration')
-# conf.set('bot_configuration', 'server', args.server)
-# conf.set('bot_configuration', 'channel', args.channel)
-# conf.set('bot_configuration', 'botnick', args.botnick)
-
-# # Writing our configuration file to 'example.cfg'
-# with open('config.cfg', 'w') as configfile:
-#     conf.write(configfile)
-
-# Variables
-debug = True
 
 # Read config file
 config = configparser.ConfigParser()
@@ -58,82 +40,72 @@ config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'config.cfg
 server = config['bot_configuration']['server']
 channel = config['bot_configuration']['channel']
 botnick = config['bot_configuration']['botnick']
-# admins_list = config.get('bot_configuration', 'admin')
 admins_list = config['bot_configuration']['admins'].split(",")
 ignored_users = config['bot_configuration']['ignored_users'].split(",")
-aws_allowed_users = config['aws']['allowed_users'].split(",")
+debug_mode = config['bot_configuration']['debug']
+
+authorised_handlers = config['bot_configuration']['authorised_handlers'].split(",")
+authorised_features = config['bot_configuration']['authorised_features'].split(",")
 
 # ip_format = r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"  # IP check
 ip_format = r"([^\s]+)"  # Thx to IRC specifications >:(
-
 user_message = r"(.*)!(.*)" + r"@" + ip_format                                 # Match: User!~User@123.123.123.123
 
 
 # REGEX ----------------------------------------------------------------------------------------------------------------
 # Scan if command made directly to botnick or to channel
 botnick_regex = user_message + r" PRIVMSG " + re.escape(botnick) + r" :"
-
 channel_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :"
 
-# commands
-# !aws
-aws_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!aws"
-
-# !calc
-calc_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!calc"
-
-# !help
-help_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!help"
-
-# !imdb
-imdb_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!imdb"
-
-# !meet
-meet_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!meet"
-
-# !money
-money_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!money"
-
-# !op
-op_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!op"
-
-# !ping
-ping_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!ping"
-
-# !quit
-quit_user_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!quit"
-
-# !say
-say_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!say"
-
-# !steam
-steamprice_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steam"
-
-# !steamadmin
-steamadmin_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamadmin"
-
-# !steamown
-steamown_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!steamown"
-
-# !time
-time_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :" + r"!time"
-
-# !yt
-yt_regex = user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt"
-# yt_regex_compiled = re.compile(yt_regex, re.IGNORECASE)
+# Regex
+aws_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!aws")
+calc_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!calc")
+help_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!help")
+imdb_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!imdb")
+meet_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!meet")
+money_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!money")
+ping_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!ping")
+quit_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!quit")
+say_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!say")
+steam_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!steam")
+time_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!time")
+yt_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt")
 
 
 def regex_search_arguments(message, expression):
-    arguments_regex = '(?<=' + re.escape(expression) + ' )(.*)'
-    string_searched = re.search(arguments_regex, message, re.IGNORECASE)
-    # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
-    arguments = string_searched.group(0)
-    return arguments
+    try:
+        arguments_regex = '(?<=' + re.escape(expression) + ' )(.*)'
+        string_searched = re.search(arguments_regex, message, re.IGNORECASE)
+        # print("string_searched =", string_searched)  # DEBUG: <_sre.SRE_Match object; span=(65, 75), match='15 EUR:AUD'>
+        arguments = string_searched.group(0)
+        return arguments
+    except:
+        arguments = False
+        return arguments
 
 
 def report_error(i_cmd, i_error, i_msg, i_medium, i_admin):
     modules.connection.send_message(("Call %s: %s" % (i_cmd, i_msg)), i_medium, i_admin)
     modules.connection.send_message(("Error %s: %s" % (i_cmd, i_error)), i_medium, i_admin)
+
+
+def cmd_multichan(i_cmd, i_module, i_decoded_ircmsg, i_medium, i_alias, i_botnick, i_admin, i_input_sub=None, i_input_add=None):
+    try:
+        module = importlib.import_module('modules.%s' % i_module)
+        i_input = regex_search_arguments(i_decoded_ircmsg, i_cmd)
+        if i_input:
+            if i_input_add:
+                getattr(module, 'main')(i_input, i_input_add, i_medium, i_alias)
+            else:
+                getattr(module, 'main')(i_input, i_medium, i_alias)
+        elif i_input is False and i_input_sub is not None:
+            i_input = i_input_sub
+            getattr(module, 'main')(i_input, i_medium, i_alias)
+        else:
+            modules.help.main(i_cmd, "error", i_medium, i_alias)
+    except Exception:
+        report_error("%s (%s)" % (i_cmd, i_medium), sys.exc_info()[0], i_decoded_ircmsg, i_botnick, i_admin)
+        modules.help.main(i_cmd, "error", i_medium, i_alias)
 
 
 # connect and join the configured channel
@@ -152,31 +124,17 @@ while 1:  # infinite loop
     decoded_ircmsg = ircmsg.decode('utf-8')  # decode ircmsg from binary to string
 
     # DEBUG: print output of the channel
-    if debug:
+    if debug_mode:
         # print(ircmsg)         # binary
         print(decoded_ircmsg)   # string
 
-    # PING : if the server pings the bot, it will answer - Happens every 2min30 on freenode.net
-    if ircmsg.find(bytes("PING :", "UTF-8")) != -1:
-        modules.connection.ping()
-
-    # AWS SQS Queue ----------------------------------------------------------------------------------------------------
-    # Poll Given SQS queue
-    if config['aws']['sqs_queue']:
-        # print("A polling is made")
-        cmd = "SQS - Retrieve message"
-        try:
-            modules.aws_sqs.main()
-            pass
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
 
     # METADATA ---------------------------------------------------------------------------------------------------------
     # Parse decoded_ircmsg for metadata
     try:
         metadata_regex = user_message + r" PRIVMSG " + r'.*' + r'(?=.:)'
         metadata_searched = re.search(metadata_regex, decoded_ircmsg, re.IGNORECASE)
-        medium_used = metadata_searched.group(0).split()[-1]  # split the last word of matching pattern in regex
+        medium_used = metadata_searched.group(0).split()[2]  # retrieve second matching pattern
         alias_talking = metadata_searched.group(1)[1:]  # [1:] removes first character (which is btw, a : )
         user_talking = metadata_searched.group(2)[1:]  # [1:] removes first character (which is btw, a ~ )
         user_ip = metadata_searched.group(3)
@@ -185,169 +143,79 @@ while 1:  # infinite loop
             continue
     except:
         # message must be a system server message
-        continue
+        if ircmsg.find(bytes("PING :", "UTF-8")) != -1:  # Answer to PING message - Happens every 2min30 on freenode.net
+            modules.connection.ping()
+            continue
+        else:  # do not process any other system message
+            continue
 
-    # INLINE -----------------------------------------------------------------------------------------------------------
+    # FEATURES ---------------------------------------------------------------------------------------------------------
+    # AWS SQS Queue - Poll Given SQS queue
+    if "aws_sqs" in authorised_features and config['aws']['sqs_queue']:
+        cmd = "SQS - Retrieve message"
+        try:
+            modules.aws_sqs.main()
+            pass
+        except:
+            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+
     # Hello <botname> <any message>
     if decoded_ircmsg.find(":Hello %s" % botnick) != -1 or decoded_ircmsg.find(":hello %s" % botnick) != -1:
         modules.speak.hello()
 
     # linkinline
-    if decoded_ircmsg.find("http://") != -1 or decoded_ircmsg.find("https://") != -1:
-        try:
-            modules.translate.main(decoded_ircmsg, medium_used, alias_talking)
-            pass
-        except:
-            report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+    if "linkinline" in authorised_features:
+        if decoded_ircmsg.find("http://") != -1 or decoded_ircmsg.find("https://") != -1:
+            try:
+                modules.translate.main(decoded_ircmsg, medium_used, alias_talking)
+                pass
+            except:
+                report_error("linkinline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
 
     # steaminline
-    if decoded_ircmsg.find("http://store.steampowered.com/app/") != -1 or decoded_ircmsg.find(
-            "https://store.steampowered.com/app/") != -1:
-        try:
-            url_searched = re.search("https?://[^\s]+", decoded_ircmsg, re.IGNORECASE)
-            modules.steam.steam_inline(url_searched.group(0))
-            pass
-        except:
-            report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+    if "steaminline" in authorised_features:
+        if decoded_ircmsg.find("http://store.steampowered.com/app/") != -1 or decoded_ircmsg.find(
+                "https://store.steampowered.com/app/") != -1:
+            try:
+                url_searched = re.search("https?://[^\s]+", decoded_ircmsg, re.IGNORECASE)
+                modules.steam.steam_inline(url_searched.group(0), medium_used, alias_talking)
+                pass
+            except:
+                report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
 
-    # COMMANDS ---------------------------------------------------------------------------------------------------------
-    # !help
-    if re.search(help_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!help"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.help.display_help(input_string, "detailed")
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
+    # HANDLERS ---------------------------------------------------------------------------------------------------------
+    if "!aws" in authorised_handlers and aws_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!aws", "aws", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !aws <operations>
-    if re.search(aws_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!aws"
+    if "!calc" in authorised_handlers and calc_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!calc", "calc", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-        if user_talking:
-            if user_talking in aws_allowed_users:
-                try:
-                    input_string = regex_search_arguments(decoded_ircmsg, cmd)
-                    modules.aws.main(input_string, medium_used, alias_talking)
-                    continue
-                except:
-                    report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-                    modules.help.display_help(cmd, "error", medium_used, alias_talking)
-            else:
-                modules.connection.send_message("Sorry, you are not allowed to use this command.")
+    if "!help" in authorised_handlers and help_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!help", "help", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_add="detailed")
 
-    # !calc <operations>
-    if re.search(calc_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!calc"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.calc.main(input_string)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
+    if "!imdb" in authorised_handlers and imdb_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!imdb", "imdb", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !imdb <Guessed Title>{#<Year>} // !imdb id:<imdbID>
-    if re.search(imdb_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!imdb"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.imdb.imdb_info(input_string)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
+    if "!meet" in authorised_handlers and meet_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!meet", "meet", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !meet <Continent/City> <HH:MM>
-    if re.search(meet_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!meet"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.time.give_hour_equivalence(input_string)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
+    if "!money" in authorised_handlers and money_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!money", "money", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !money <number> <CODE1>:<CODE2>
-    if re.search(money_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!money"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.money.money_rate(input_string)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
+    if "!ping" in authorised_handlers and ping_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!ping", "ping", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_sub=user_ip)
 
-    # !op REGEX
-    if re.search(op_regex, decoded_ircmsg, re.IGNORECASE):
-        modules.connection.send_message("Nice try!")
-        continue
+    if "!quit" in authorised_handlers and quit_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!quit", "quit", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_sub="unset")
 
-    # !ping
-    if re.search(ping_user_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!ping"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.ping.main(input_string)
-        except:
-            modules.ping.main(user_ip)
+    if "!say" in authorised_handlers and say_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!say", "speak", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !quit REGEX
-    if re.search(quit_user_regex, decoded_ircmsg, re.IGNORECASE):
-        if user_talking:
-            if user_talking in admins_list:
-                modules.connection.send_message("Bye bye bitches!")
-                sys.exit("Bot admin requested a shutdown.")
-            else:
-                modules.connection.send_message("*rires*")
+    if "!steam" in authorised_handlers and steam_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!steam", "steam", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !say <something>
-    if re.search(say_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!say"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.speak.say(input_string)
-            continue
-        except:
-            report_error("%s (%s)" % (cmd, medium_used), sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
+    if "!time" in authorised_handlers and time_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!time", "time", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
-    # !steam <Game Title>
-    if re.search(steamprice_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!steam"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.steam.steam_price(input_string)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
-
-    # !time <Continent/City>
-    if re.search(time_regex, decoded_ircmsg, re.IGNORECASE):
-        cmd = "!time"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.time.main(input_string)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
-
-    # !yt <ChannelID>
-    if re.search(yt_regex, decoded_ircmsg, re.IGNORECASE):
-    # if yt_regex_compiled.search(decoded_ircmsg):
-        cmd = "!yt"
-        try:
-            input_string = regex_search_arguments(decoded_ircmsg, cmd)
-            modules.youtube.main(input_string, medium_used, alias_talking)
-            continue
-        except:
-            report_error(cmd, sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
-            modules.help.display_help(cmd, "error", medium_used, alias_talking)
-
-
+    if "!yt" in authorised_handlers and yt_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!yt", "youtube", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])

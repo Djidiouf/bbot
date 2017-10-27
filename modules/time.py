@@ -51,120 +51,17 @@ def give_time(tz_string, i_delta=None):
             if i_delta >= 0:
                 i_delta_sign = "+"
             time_utc = time_utc + timedelta(hours=i_delta)
-            modules.connection.send_message(time_utc.strftime(format) + " - %s %s%s" % (tz, i_delta_sign, i_delta))
+            results = time_utc.strftime(format) + " - %s %s%s" % (tz, i_delta_sign, i_delta)
+            return results
         else:
-            modules.connection.send_message(time_utc.strftime(format) + " - %s" % tz)
+            results = time_utc.strftime(format) + " - %s" % tz
+            return results
     except pytz.exceptions.UnknownTimeZoneError:
-        modules.connection.send_message("Timezone not found")
+        # modules.connection.send_message("Timezone not found")
         raise ValueError('Timezone not found')
 
 
-def give_hour_equivalence(i_string):
-    """
-    Responds to an input as "!meet <Continent/City> <HH:MM>"
-    Timezone available here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    /!\ currently only "utc" is working
-
-    :param i_string: a string with these elements: "<Continent/City> <HH:MM>"
-    :print: time in different timezones
-    """
-
-    # Divide a string in a tuple: 'str1', 'separator', 'str2'
-    tuple_string = i_string.partition(' ')
-
-    if ':' in tuple_string[0]:  # Process either !meet Europe/Oslo 10:00 or !meet 10:00 Europe/Oslo
-        time_string = tuple_string[0]
-        tz_requested = tuple_string[2]
-    else:
-        time_string = tuple_string[2]
-        tz_requested = tuple_string[0]
-
-    # Divide a string in a tuple: 'str1', 'separator', 'str2'
-    tuple_time = time_string.partition(':')
-    simple_hour = tuple_time[0]
-    simple_minute = tuple_time[2]
-
-    tz_requested = capitalize_timezone(tz_requested)
-
-    try:
-        tz_requested = pytz.timezone(tz_requested)
-    except pytz.exceptions.UnknownTimeZoneError:
-        modules.connection.send_message("Timezone not found")
-        raise ValueError('Timezone not found')
-
-    # UTC detailed
-    # time_utc = datetime.now(pytz.utc)
-    # modules.connection.send_message("DEBUG UTC: " + time_utc.strftime(format))
-    year_utc = datetime.now(pytz.utc).year
-    month_utc = datetime.now(pytz.utc).month
-    day_utc = datetime.now(pytz.utc).day
-    hour_utc = datetime.now(pytz.utc).hour
-    minute_utc = datetime.now(pytz.utc).minute
-    hour = int(simple_hour)      # Need to be int and not string
-    minute = int(simple_minute)  # Need to be int and not string
-
-    format = "%H:%M"
-    # format = "%Y-%m-%d - %H:%M:%S - %Z%z"  # full format
-
-    # modules.connection.send_message("DEBUG req: " + str(hour) +"H : " + str(minute) + "M")
-    # modules.connection.send_message("DEBUG utc: " + str(hour_utc) +"H : " + str(minute_utc) + "M")
-
-    # hour_diff = hour - hour_utc
-    # minute_diff = minute - minute_utc
-    # modules.connection.send_message("DEBUG diff: " + str(hour_diff) +"H : " + str(minute_diff) + "M")
-
-    hour_req = datetime.now(tz_requested).hour
-    minute_req = datetime.now(tz_requested).minute
-    decal_h = hour_req - hour_utc
-    decal_m = minute_req - minute_utc
-    # modules.connection.send_message("DEBUG decalageH: " + str(hour_req) + " - " + str(hour_utc) + " = " + str(decal_h))
-    # modules.connection.send_message("DEBUG decalageM: " + str(minute_req) + " - " + str(minute_utc) + " = " + str(decal_m))
-
-    hour_new = hour-decal_h
-    minute_new = minute-decal_m
-
-    # print("hour_new  : " + str(hour_new))
-    # print("minute_new: " + str(minute_new))
-
-    if hour_new < 0:
-        hour_new += 24
-        # print("---- hour_new +24")
-    if hour_new == 24:
-        hour_new = 0
-    if hour_new > 24:
-        hour_new -= 24
-        # print("---- hour_new -24")
-    if minute_new == 60:
-        minute_new = 0
-        hour_new += 1
-        # print("---- hour_new +1")
-    if minute_new > 60:
-        minute_new -= 60
-        hour_new += 1
-        # print("---- hour_new +1")
-    if minute_new < 0:
-        minute_new += 60
-        hour_new -= 1
-        # print("---- hour_new -1")
-
-    # print("hour_new revised: " + str(hour_new))
-    # print("minute_new revis: " + str(minute_new))
-
-    # time_requested = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(str(tz_requested)))
-    # modules.connection.send_message(time_requested.strftime(format) + " - %s" % str(tz_requested))
-
-    tz_one = "Europe/London"
-    tz_two = "Europe/Oslo"
-    tz_three = "Australia/Sydney"
-    time_one = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_one))
-    modules.connection.send_message(time_one.strftime(format) + " - %s" % tz_one)
-    time_two = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_two))
-    modules.connection.send_message(time_two.strftime(format) + " - %s" % tz_two)
-    time_three = datetime(year_utc, month_utc, day_utc, hour_new, minute_new, 0, 0, pytz.utc).astimezone(pytz.timezone(tz_three))
-    modules.connection.send_message(time_three.strftime(format) + " - %s" % tz_three)
-
-
-def main(i_string):
+def main(i_string, i_medium, i_alias=None):
 
     # If tz_string is only 2 letters, it can be used to request time zones for a code country
     if len(i_string) == 2:
@@ -172,13 +69,14 @@ def main(i_string):
         if tz in pytz.country_timezones:
             tz_matching = pytz.country_timezones(tz)
             if len(tz_matching) > 1:  # If there is more than 1 tz possible, list them, if not, process the tz
-                modules.connection.send_message("Timezones available for " + tz + ":")
-                modules.connection.send_message(', '.join(pytz.country_timezones(tz)))
+                modules.connection.send_message("Timezones available for " + tz + ":", i_medium, i_alias)
+                modules.connection.send_message(', '.join(pytz.country_timezones(tz)), i_medium, i_alias)
             else:
-                give_time(tz_matching[0])
+                results = give_time(tz_matching[0])
+                modules.connection.send_message(results, i_medium, i_alias)
             return
         else:
-            modules.connection.send_message("This country code is not recognized as a valid ISO-3166 country code.")
+            modules.connection.send_message("This country code is not recognized as a valid ISO-3166 country code.", i_medium, i_alias)
             return
 
     utc_searched = re.search("(.*)(\+|-)(.*)", i_string, re.IGNORECASE)
@@ -186,14 +84,19 @@ def main(i_string):
 
     # if tz_string is a given and recognized word, it can be used to trigger specific timezone queries
     if i_string == 'bchat':
-        give_time('Europe/London')
-        give_time('Europe/Oslo')
-        give_time('Australia/Sydney')
+        results = give_time('Europe/London')
+        modules.connection.send_message(results, i_medium, i_alias)
+        results = give_time('Europe/Oslo')
+        modules.connection.send_message(results, i_medium, i_alias)
+        results = give_time('Australia/Sydney')
+        modules.connection.send_message(results, i_medium, i_alias)
     elif utc_searched:
         tz_requested = capitalize_timezone(utc_searched.group(1))
         delta = str(utc_searched.group(2) + utc_searched.group(3))
-        give_time(tz_requested, int(delta))
+        results = give_time(tz_requested, int(delta))
+        modules.connection.send_message(results, i_medium, i_alias)
     else:
         # Capitalized the tz_requested given
         tz_requested = capitalize_timezone(i_string)
-        give_time(tz_requested)
+        results = give_time(tz_requested)
+        modules.connection.send_message(results, i_medium, i_alias)
