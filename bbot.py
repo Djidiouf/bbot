@@ -145,7 +145,7 @@ while 1:  # infinite loop
         # message must be a system server message
         if ircmsg.find(bytes("PING :", "UTF-8")) != -1:  # Answer to PING message - Happens every 2min30 on freenode.net
             modules.connection.ping()
-            continue
+            # continue  # need to not continue/pass to get the SQS queue working every 2.30minute
         else:  # do not process any other system message
             continue
 
