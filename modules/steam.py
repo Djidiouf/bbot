@@ -401,8 +401,10 @@ def spy_player(i_string, i_medium, i_alias=None):
                 has_played = True
                 steam_app_id = line['appid']
                 steam_appsmeta = get_app_metadata(steam_app_id, "fr")
-                title_corrected = steam_appsmeta['%s' % steam_app_id]["data"]["name"]
-
+                try:
+                    title_corrected = steam_appsmeta['%s' % steam_app_id]["data"]["name"]
+                except KeyError:
+                    title_corrected = "<Game deleted from the Steam Store>"
                 playtime_2weeks = line['playtime_2weeks']
                 playtime_2weeks = playtime_2weeks * 60
                 m, s = divmod(playtime_2weeks, 60)
