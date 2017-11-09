@@ -20,6 +20,7 @@ import importlib
 import modules.aws
 import modules.aws_sqs
 import modules.calc
+import modules.finance
 import modules.connection
 import modules.help
 import modules.imdb
@@ -60,6 +61,7 @@ channel_regex = user_message + r" PRIVMSG " + re.escape(channel) + r" :"
 # Regex
 aws_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!aws")
 calc_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!calc")
+finance_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!finance")
 help_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!help")
 imdb_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!imdb")
 meet_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!meet")
@@ -189,6 +191,9 @@ while 1:  # infinite loop
 
     if "!calc" in authorised_handlers and calc_regex.search(decoded_ircmsg, re.IGNORECASE):
         cmd_multichan("!calc", "calc", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+
+    if "!finance" in authorised_handlers and finance_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!finance", "finance", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
 
     if "!help" in authorised_handlers and help_regex.search(decoded_ircmsg, re.IGNORECASE):
         cmd_multichan("!help", "help", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_add="detailed")
