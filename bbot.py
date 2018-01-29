@@ -15,6 +15,7 @@ import sys  # system library
 import os
 import time
 import importlib
+import chardet  # detect encoding
 
 # Project modules
 import modules.aws
@@ -122,14 +123,15 @@ while 1:  # infinite loop
         time.sleep(5)  # Be easy on the reconnection
         modules.connection.join_chan(channel)
 
-    ircmsg = ircmsg.strip(bytes("\n\r", "UTF-8"))  # Remove linebreaks which appear on each message
-    decoded_ircmsg = ircmsg.decode('utf-8')  # decode ircmsg from binary to string
+    # Decode binary
+    encoding = chardet.detect(ircmsg)['encoding']   # Detect encoding used
+    ircmsg = ircmsg.strip(bytes("\n\r", encoding))  # Remove linebreaks which appear on each message
+    decoded_ircmsg = ircmsg.decode(encoding)        # decode ircmsg from binary to string
 
     # DEBUG: print output of the channel
     if debug_mode:
         # print(ircmsg)         # binary
         print(decoded_ircmsg)   # string
-
 
     # METADATA ---------------------------------------------------------------------------------------------------------
     # Parse decoded_ircmsg for metadata
@@ -145,7 +147,7 @@ while 1:  # infinite loop
             continue
     except:
         # message must be a system server message
-        if ircmsg.find(bytes("PING :", "UTF-8")) != -1:  # Answer to PING message - Happens every 2min30 on freenode.net
+        if ircmsg.find(bytes("PING :", encoding)) != -1:  # Answer to PING message - Happens every 2min30 on freenode.net
             modules.connection.ping()
             # continue  # need to not continue/pass to get the SQS queue working every 2.30minute
         else:  # do not process any other system message

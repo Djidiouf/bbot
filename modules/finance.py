@@ -86,4 +86,4 @@ def main(i_string, i_medium, i_alias=None):
         sign = ""
         if diff_value >= 0:
             sign = "+"
-        modules.connection.send_message("Difference on close rates: %s%.2f (%s%.2f%%)" % (sign, diff_value, sign, diff_percent), i_medium, i_alias)
+        modules.connection.send_message("Difference on close values: %s%.2f (%s%.2f%%)" % (sign, diff_value, sign, diff_percent), i_medium, i_alias)
