@@ -4,6 +4,7 @@ __author__ = 'Djidiouf'
 import re
 import configparser
 import os
+import tempfile  # get a temp folder
 
 # Third-party modules
 import langdetect  # install langdetect
@@ -40,7 +41,13 @@ def main(i_string, i_medium, i_alias=None):
 
         # Ignore specific domains
         ignored_domains = ("facebook.com", "imgur.com")
-        extracted = tldextract.extract(url)
+
+        # Extract using a custom cache for TLDExtract library due to permissions limitations
+        ## https://github.com/john-kurkowski/tldextract/issues/9#issuecomment-4644805
+        custom_cache_tld_extract = tldextract.TLDExtract(cache_file=os.path.join(tempfile.gettempdir(), '.tld_set'))
+        extracted = custom_cache_tld_extract(url)
+        # extracted = tldextract.extract(url)
+
         url_domain = "{}.{}".format(extracted.domain, extracted.suffix)
         if url_domain in ignored_domains:
             continue  # Disregard such url
