@@ -123,10 +123,15 @@ while 1:  # infinite loop
         time.sleep(5)  # Be easy on the reconnection
         modules.connection.join_chan(channel)
 
-    # Decode binary
+    # Decode binary (try first using utf-8 before trying to guess the encoding)
     encoding = chardet.detect(ircmsg)['encoding']   # Detect encoding used
-    ircmsg = ircmsg.strip(bytes("\n\r", encoding))  # Remove linebreaks which appear on each message
-    decoded_ircmsg = ircmsg.decode(encoding)        # decode ircmsg from binary to string
+
+    try:
+        ircmsg = ircmsg.strip(bytes("\n\r", 'utf-8'))   # Remove linebreaks which appear on each message
+        decoded_ircmsg = ircmsg.decode('utf-8')         # decode ircmsg from binary to string
+    except UnicodeDecodeError:
+        ircmsg = ircmsg.strip(bytes("\n\r", encoding))  # Remove linebreaks which appear on each message
+        decoded_ircmsg = ircmsg.decode(encoding)        # decode ircmsg from binary to string
 
     # DEBUG: print output of the channel
     if debug_mode:
