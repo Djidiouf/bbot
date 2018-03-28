@@ -1,7 +1,8 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-import urllib.request  # Open url request on website
+# import urllib.request  # Open url request on website
+import requests  # Open url request on website
 
 # Project modules
 import modules.connection
@@ -30,22 +31,29 @@ def main(i_string, i_medium, i_alias=None):
     code1 = list_currencies[0].upper()
     code2 = list_currencies[1].upper()
 
-    url = 'https://finance.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
+    # Google finance API
+    # url = 'https://finance.google.com/finance/converter?a=1&from=%s&to=%s' % (code1, code2)
+    ## Define where the results could be find and convert the split separator in byte.
+    ## Can't be simplified as a variable can't be called through bytes
+    # separator1 = '</div>\n&nbsp;\n<div id=currency_converter_result>1 %s = <span class=bld>' % code1  # Google
+    # separator1 = str.encode(separator1)  # Convert it in a byte type
+    # separator2 = ' %s</span>' % code2  # Google
+    # separator2 = str.encode(separator2)  # Convert it in a byte type
+    # webpage = urllib.request.urlopen(url)
+    # rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
+    # webpage.close()
 
+    url = 'https://free.currencyconverterapi.com/api/v5/convert?q=%s_%s&compact=y' % (code1, code2)
+    response = requests.get(url, stream=True)
 
-    # Define where the results could be find and convert the split separator in byte.
-    # Can't be simplified as a variable can't be called through bytes
-    separator1 = '</div>\n&nbsp;\n<div id=currency_converter_result>1 %s = <span class=bld>' % code1  # Google
-    separator1 = str.encode(separator1)  # Convert it in a byte type
+    if response.status_code == 200:
+        content = response.json()
 
-    separator2 = ' %s</span>' % code2  # Google
-    separator2 = str.encode(separator2)  # Convert it in a byte type
+        key = "%s_%s" % (code1, code2)
+        rate = content[key]["val"]
+        rate = float(rate)
 
-    webpage = urllib.request.urlopen(url)
-
-    rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
-    total = amount * rate
-    # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
-    # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
-    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate, code2), i_medium, i_alias)
-    webpage.close()
+        total = amount * rate
+        # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
+        # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
+        modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate, code2), i_medium, i_alias)
