@@ -75,7 +75,7 @@ steam_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel)
 time_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!time")
 yt_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt")
 
-money_inline_regex = re.compile(r"(?:a\$|\$|€|₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b")  # https://regex101.com/r/eI8wlW/5
+money_inline_regex = re.compile(r"(?:a\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b|\d[0-9|\,|\.|\'|\s]*+(?:a\$|\$|\s\$|\€|\₤)")  # https://regex101.com/r/eI8wlW/6
 
 
 def regex_search_arguments(message, expression):

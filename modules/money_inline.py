@@ -26,8 +26,9 @@ def main(i_string, i_medium, i_alias=None):
     # Capitalize the full string to not have to bother between eur and EUR or a$ and A$
     i_string = i_string.upper()
 
-    all_cur = re.findall(r"(?:a\$|\$|€|₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b",
-                         i_string)  # https://regex101.com/r/eI8wlW/5
+    all_cur = re.findall(r"(?:a\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b|\d[0-9|\,|\.|\'|\s]*+(?:a\$|\$|\s\$|\€|\₤)",
+                         i_string)  # https://regex101.com/r/eI8wlW/6
+    # by group: ((?:a\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+)|((?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b)|(\d[0-9|\,|\.|\'|\s]*+(?:a\$|\$|\s\$|\€|\₤))
 
 
     for item in all_cur:
