@@ -27,6 +27,7 @@ import modules.help
 import modules.imdb
 import modules.meet
 import modules.money
+import modules.money_inline
 import modules.ping
 import modules.quit
 import modules.speak
@@ -44,7 +45,7 @@ channel = config['bot_configuration']['channel']
 botnick = config['bot_configuration']['botnick']
 admins_list = config['bot_configuration']['admins'].split(",")
 ignored_users = config['bot_configuration']['ignored_users'].split(",")
-debug_mode = config['bot_configuration']['debug']
+debug_mode = config['modes']['debug']
 
 authorised_handlers = config['bot_configuration']['authorised_handlers'].split(",")
 authorised_features = config['bot_configuration']['authorised_features'].split(",")
@@ -73,6 +74,8 @@ say_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) +
 steam_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!steam")
 time_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!time")
 yt_regex = re.compile(user_message + r" PRIVMSG " + r"(" + re.escape(channel) + r"|" + re.escape(botnick) + r")" + r" :" + r"!yt")
+
+money_inline_regex = re.compile(r"(?:a\$|\$|€|₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b")  # https://regex101.com/r/eI8wlW/5
 
 
 def regex_search_arguments(message, expression):
@@ -191,6 +194,16 @@ while 1:  # infinite loop
                 pass
             except:
                 report_error("steaminline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
+
+    # money_inline
+    if "money_inline" in authorised_features:
+        if money_inline_regex.search(decoded_ircmsg, re.IGNORECASE):
+        #if any(char.isdigit() for char in decoded_ircmsg):
+            try:
+                modules.money_inline.main(decoded_ircmsg, medium_used, alias_talking)
+                pass
+            except:
+                report_error("money_inline", sys.exc_info()[0], decoded_ircmsg, botnick, admins_list[0])
 
     # HANDLERS ---------------------------------------------------------------------------------------------------------
     if "!aws" in authorised_handlers and aws_regex.search(decoded_ircmsg, re.IGNORECASE):

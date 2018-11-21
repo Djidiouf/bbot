@@ -11,6 +11,8 @@ def string_cleanup(x, notwanted):
     :return: a string without these elements
     """
     for item in notwanted:
+        if item.startswith("$"):
+            item = "\\" + item
         x = re.sub(item, '', x)
     return x
 
