@@ -26,9 +26,9 @@ def main(i_string, i_medium, i_alias=None):
     # Capitalize the full string to not have to bother between eur and EUR or a$ and A$
     i_string = i_string.upper()
 
-    all_cur = re.findall(r"(?:a\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b|\d[0-9|\,|\.|\'|\s]*+(?:a\$|\$|\s\$|\€|\₤)",
-                         i_string)  # https://regex101.com/r/eI8wlW/6
-    # by group: ((?:a\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+)|((?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b)|(\d[0-9|\,|\.|\'|\s]*+(?:a\$|\$|\s\$|\€|\₤))
+    all_cur = re.findall(r"(?:A\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b|\d[0-9|\,|\.|\'|\s]*(?:A\$|\$|\s\$|\€|\₤)",
+                         i_string)  # https://regex101.com/r/eI8wlW/7
+    # by group: ((?:A\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+)|((?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b)|(\d[0-9|\,|\.|\'|\s]*+(?:A\$|\$|\s\$|\€|\₤))
 
 
     for item in all_cur:
@@ -44,10 +44,10 @@ def main(i_string, i_medium, i_alias=None):
         if "," in item:
             item = modules.textalteration.string_replace(item, ",", ".")
 
-        # By default, currency is considered defined as a suffix
+        # By default, currency is considered defined as a ISO suffix
         item_type = 'suffix'
 
-        # Replace prefixes by suffixes
+        # Replace prefixed symbols by ISO suffixes
         if item[0] == '$':
             item = modules.textalteration.string_cleanup(item, "$")
             item = item + ' ' + 'USD'
@@ -64,6 +64,17 @@ def main(i_string, i_medium, i_alias=None):
             item = modules.textalteration.string_cleanup(item, "A$")
             item = item + ' ' + 'AUD'
             item_type = 'prefix'
+
+        # Replace suffixed symbols by ISO suffixes
+        if item[-2] == 'A' and item[-1] == '$':
+            item = modules.textalteration.string_cleanup(item, "A$")
+            item = item + '' + 'AUD'
+        elif item[-1] == '$':
+            item = modules.textalteration.string_cleanup(item, "$")
+            item = item + '' + 'USD'
+        elif item[-1] == '€':
+            item = modules.textalteration.string_cleanup(item, "€")
+            item = item + '' + 'EUR'
 
         # Prefix floating character by 0 if needed to avoid .35 AUD
         if item.startswith('.'):
