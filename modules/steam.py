@@ -9,6 +9,7 @@ import configparser
 import re  # Regular Expression library
 import sys
 import requests  # Open url request on website
+import operator  # Get item in list
 
 # Third-party modules
 import html2text  # install html2text
@@ -395,6 +396,9 @@ def spy_player(i_string, i_medium, i_alias=None):
     modules.connection.send_message("In the last 2 weeks %s has played:" % player_name, i_medium, i_alias)
     playtime_2_weeks_total = 0
 
+    # List of games titles and playtimes
+    games_played=[]
+
     if "games" in owned_games["response"]:
         for line in owned_games["response"]["games"]:
             if "playtime_2weeks" in line:
@@ -407,13 +411,24 @@ def spy_player(i_string, i_medium, i_alias=None):
                     title_corrected = "<Game deleted from the Steam Store>"
                 playtime_2weeks = line['playtime_2weeks']
                 playtime_2weeks = playtime_2weeks * 60
-                m, s = divmod(playtime_2weeks, 60)
-                h, m = divmod(m, 60)
 
-                modules.connection.send_message("%s (%dh%02dmin)" % (title_corrected, h, m), i_medium, i_alias)
+                # Create a tuple with both the game's title and playtime
+                tup_time = title_corrected, playtime_2weeks
+                games_played.append(tup_time)
 
                 playtime_2_weeks_total = playtime_2_weeks_total + playtime_2weeks
 
+    # Display a sorted list of game titles and playtime
+    games_played.sort(key=operator.itemgetter(1), reverse=True)
+
+    for element in games_played:
+        title_corrected = element[0]
+        m, s = divmod(element[1], 60)
+        h, m = divmod(m, 60)
+        modules.connection.send_message("- %s (%dh%02dmin)" % (title_corrected, h, m), i_medium, i_alias)
+        time.sleep(0.2)  # Reduce output speed for flood prevention
+
+    # Display total playtime
     if has_played:
         # Total
         m_t, s_t = divmod(playtime_2_weeks_total, 60)
@@ -425,7 +440,7 @@ def spy_player(i_string, i_medium, i_alias=None):
         h_a, m_a = divmod(m_a, 60)
 
         modules.connection.send_message(
-            "-- For a total of %dh%02dmin (average of %dh%02dmin per day)" % (h_t, m_t, h_a, m_a), i_medium, i_alias)
+            "For a total of %dh%02dmin (average of %dh%02dmin per day)" % (h_t, m_t, h_a, m_a), i_medium, i_alias)
     else:
         modules.connection.send_message("Nothing at all.", i_medium, i_alias)
 

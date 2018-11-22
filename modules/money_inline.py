@@ -21,15 +21,15 @@ def get_rate(code1, code2):
         rate = float(rate)
         return rate
 
+
 def main(i_string, i_medium, i_alias=None):
 
     # Capitalize the full string to not have to bother between eur and EUR or a$ and A$
     i_string = i_string.upper()
 
-    all_cur = re.findall(r"(?:A\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b|\d[0-9|\,|\.|\'|\s]*(?:A\$|\$|\s\$|\€|\₤)",
+    all_cur = re.findall(r"(?:A\$|\$|\€|\£)[0-9|\,|\.|\s|\']+|(?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b|\d[0-9|\,|\.|\'|\s]*(?:A\$|\$|\s\$|\€|\£)",
                          i_string)  # https://regex101.com/r/eI8wlW/7
     # by group: ((?:A\$|\$|\€|\₤)[0-9|\,|\.|\s|\']+)|((?:\d\s|\d|\.\d)[0-9|\,|\.|\s|\']*[a-zA-Z]{3}\b)|(\d[0-9|\,|\.|\'|\s]*+(?:A\$|\$|\s\$|\€|\₤))
-
 
     for item in all_cur:
         # Cleanup matches from unwanted separators
@@ -48,7 +48,11 @@ def main(i_string, i_medium, i_alias=None):
         item_type = 'suffix'
 
         # Replace prefixed symbols by ISO suffixes
-        if item[0] == '$':
+        if item[0] == 'A' and item[1] == '$':
+            item = modules.textalteration.string_cleanup(item, "A$")
+            item = item + ' ' + 'AUD'
+            item_type = 'prefix'
+        elif item[0] == '$':
             item = modules.textalteration.string_cleanup(item, "$")
             item = item + ' ' + 'USD'
             item_type = 'prefix'
@@ -56,13 +60,9 @@ def main(i_string, i_medium, i_alias=None):
             item = modules.textalteration.string_cleanup(item, "€")
             item = item + ' ' + 'EUR'
             item_type = 'prefix'
-        elif item[0] == '₤':
-            item = modules.textalteration.string_cleanup(item, "₤")
+        elif item[0] == '£':
+            item = modules.textalteration.string_cleanup(item, "£")
             item = item + ' ' + 'GBP'
-            item_type = 'prefix'
-        elif item[0] == 'A' and item[1] == '$':
-            item = modules.textalteration.string_cleanup(item, "A$")
-            item = item + ' ' + 'AUD'
             item_type = 'prefix'
 
         # Replace suffixed symbols by ISO suffixes
@@ -75,14 +75,17 @@ def main(i_string, i_medium, i_alias=None):
         elif item[-1] == '€':
             item = modules.textalteration.string_cleanup(item, "€")
             item = item + '' + 'EUR'
+        elif item[-1] == '£':
+            item = modules.textalteration.string_cleanup(item, "£")
+            item = item + '' + 'GBP'
 
         # Prefix floating character by 0 if needed to avoid .35 AUD
         if item.startswith('.'):
             item = item[:0] + "0" + item[0:]
 
-        # Separate amount from currency code
+        # Separate amount from currency code with a space
         if item_type == "suffix":
-            item = re.sub(r'([A-Z]{3})',r" \1",item)
+            item = re.sub(r'([A-Z]{3})', r" \1", item)
 
         # Debug print
         # print(item_type + ": " + item)
@@ -103,22 +106,23 @@ def main(i_string, i_medium, i_alias=None):
         except:
             continue
 
-        total_aud = amount * rate_aud
-        total_eur = amount * rate_eur
-        total_gbp = amount * rate_gbp
-        total_nok = amount * rate_nok
+        total_aud = '{:,.2f}'.format(amount * rate_aud).replace(',', ' ')
+        total_eur = '{:,.2f}'.format(amount * rate_eur).replace(',', ' ')
+        total_gbp = '{:,.2f}'.format(amount * rate_gbp).replace(',', ' ')
+        total_nok = '{:,.2f}'.format(amount * rate_nok).replace(',', ' ')
+        amount = '{:,.2f}'.format(amount).replace(',', ' ')
 
         if code not in ["AUD", "EUR", "GBP", "NOK"]:
-            # 305546 USD = 512589.24 AUD | 314844.94 EUR | 215584.12 GBP | 3000000.00 NOK
-            message = "%.2f %s" %(amount, code) + " = " + "%.2f %s" %(total_aud, "AUD") + " | " + "%.2f %s" %(total_eur, "EUR") + " | " + "%.2f %s" %(total_gbp, "GBP") + " | " + "%.2f %s" %(total_nok, "NOK")
+            # 305 546.00 USD = 512 589.24 AUD | 314 844.94 EUR | 215 584.12 GBP | 3 000 000.00 NOK
+            message = "%s %s" % (amount, code) + " = " + "%s %s" % (total_aud, "AUD") + " | " + "%s %s" % (total_eur, "EUR") + " | " + "%s %s" % (total_gbp, "GBP") + " | " + "%s %s" % (total_nok, "NOK")
         elif code == "AUD":
-            message = "%.2f %s" % (amount, code) + " = "+ "%.2f %s" % (total_eur, "EUR") + " | " + "%.2f %s" % (total_gbp, "GBP") + " | " + "%.2f %s" % (total_nok, "NOK")
+            message = "%s %s" % (amount, code) + " = " + "%s %s" % (total_eur, "EUR") + " | " + "%s %s" % (total_gbp, "GBP") + " | " + "%s %s" % (total_nok, "NOK")
         elif code == "EUR":
-            message = "%.2f %s" % (amount, code) + " = "+ "%.2f %s" % (total_aud, "AUD") + " | " + "%.2f %s" % (total_gbp, "GBP") + " | " + "%.2f %s" % (total_nok, "NOK")
+            message = "%s %s" % (amount, code) + " = " + "%s %s" % (total_aud, "AUD") + " | " + "%s %s" % (total_gbp, "GBP") + " | " + "%s %s" % (total_nok, "NOK")
         elif code == "GBP":
-            message = "%.2f %s" % (amount, code) + " = "+ "%.2f %s" % (total_aud, "AUD") + " | " + "%.2f %s" % (total_eur, "EUR") + " | " + "%.2f %s" % (total_nok, "NOK")
+            message = "%s %s" % (amount, code) + " = " + "%s %s" % (total_aud, "AUD") + " | " + "%s %s" % (total_eur, "EUR") + " | " + "%s %s" % (total_nok, "NOK")
         elif code == "NOK":
-            message = "%.2f %s" % (amount, code) + " = "+ "%.2f %s" % (total_aud, "AUD") + " | " + "%.2f %s" % (total_eur, "EUR") + " | " + "%.2f %s" % (total_gbp, "GBP")
+            message = "%s %s" % (amount, code) + " = " + "%s %s" % (total_aud, "AUD") + " | " + "%s %s" % (total_eur, "EUR") + " | " + "%s %s" % (total_gbp, "GBP")
 
 
         modules.connection.send_message(message, i_medium, i_alias)
