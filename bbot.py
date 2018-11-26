@@ -16,6 +16,7 @@ import os
 import time
 import importlib
 import chardet  # detect encoding
+import time  # Give very precise time with time.clock()
 
 # Project modules
 import modules.aws

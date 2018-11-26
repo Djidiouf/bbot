@@ -15,7 +15,8 @@ def get_russian_price(i_string):
 
     title_requested = modules.textalteration.string_replace(i_string, " ", "+")
 
-    url = "http://www.allkeyshop.com/catalogue/search.php?q=%s&sort=nameAsc" % title_requested
+    # url = "http://www.allkeyshop.com/catalogue/search.php?q=%s&sort=nameAsc" % title_requested
+    url = "https://www.allkeyshop.com/blog/catalogue/search-%s/sort-name-asc/" % title_requested
     webpage = requests.get(url, stream=True)
     soup = BeautifulSoup(webpage.text, 'lxml')
 

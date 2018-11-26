@@ -10,6 +10,8 @@ import re  # Regular Expression library
 import sys
 import requests  # Open url request on website
 import operator  # Get item in list
+import time  # Give very precise time with time.clock()
+import datetime  # Deal with date and allow conversion of date format
 
 # Third-party modules
 import html2text  # install html2text
@@ -32,7 +34,7 @@ def get_app_id(i_string):
     """
     # Main variables
     special_chars = ["®", "™", "Tom Clancy's ", "Sid Meier's "]
-    title_requested = modules.textalteration.string_cleanup(i_string, special_chars)
+    title_requested = modules.textalteration.string_cleanup_simple(i_string, special_chars)
     title_requested = title_requested.lower()
 
     # Condition variables
@@ -48,7 +50,7 @@ def get_app_id(i_string):
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
-        line['name'] = modules.textalteration.string_cleanup(line['name'], special_chars)
+        line['name'] = modules.textalteration.string_cleanup_simple(line['name'], special_chars)  # TODO: Improve perf as this costs a second
         if line['name'].lower() == title_requested:
             title_found = True
 
@@ -106,7 +108,7 @@ def get_app_metadata(steam_id, cc_code):
     :return:
     """
     url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (steam_id, cc_code)
-    steam_appsmeta_filename = 'steam_appsmeta_%s.json' % steam_id
+    steam_appsmeta_filename = 'steam_appsmeta_%s_%s.json' % (steam_id, cc_code)
     steam_appsmeta = retrieve_internet_content(url_steam_appsmeta, steam_appsmeta_filename)
 
     return steam_appsmeta
@@ -124,6 +126,43 @@ def get_owned_games(player_id, steam_api_key):
     steam_player_meta = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
 
     return steam_player_meta
+
+
+def get_app_review_detailed(steam_id, filter, language, day_range, start_offset, review_type, purchase_type,
+                            num_per_page):
+    """
+    Retrieve the review of a title from the Steam API
+    :param steam_id:
+    :param filter:            recent, updated, all
+    :param language:          see https://partner.steamgames.com/documentation/languages (and use the API language code list) or pass “all” for all reviews
+    :param day_range:         range from now to n days ago to look for helpful reviews. Only applicable for the “all” filter.
+    :param start_offset:      reviews are returned in batches of 20, so pass 0 for the first set, then 20 for the next set, etc.
+    :param review_type:       all, positive, negative
+    :param purchase_type:     all, non_steam_purchase, steam
+    :param num_per_page:      by default, up to 20 reviews will be returned. More reviews can be returned based on this parameter (with a maximum of 100 reviews)
+    :return:
+    """
+    url_steam_appsreview = 'https://store.steampowered.com/appreviews/%s?json=1&filter=%s&language=%s&day_range=%s&start_offset=%s&review_type=%s&purchase_type=%s&num_per_page=%s' % (
+    steam_id, filter, language, day_range, start_offset, review_type, purchase_type, num_per_page)
+    steam_appsreview_filename = 'steam_appsreviews_%s.json' % steam_id
+    steam_appsreview = retrieve_internet_content(url_steam_appsreview, steam_appsreview_filename)
+
+    return steam_appsreview
+
+
+def get_app_review_score(steam_id):
+    """
+    Retrieve the revie of a title from the Steam API for score purposes
+    :param steam_id:
+    :return:
+    """
+    url_steam_appsreview_score =\
+        'https://store.steampowered.com/appreviews/%s?json=1&filter=%s&language=%s&num_per_page=%s'\
+        % (steam_id, 'all', 'all', '1')
+    steam_appsreview_score_filename = 'steam_appsreviews_%s_score.json' % steam_id
+    steam_appsreview_score = retrieve_internet_content(url_steam_appsreview_score, steam_appsreview_score_filename)
+
+    return steam_appsreview_score
 
 
 def retrieve_internet_content(i_url, i_filename):
@@ -217,69 +256,141 @@ def steam_inline(i_string, i_medium, i_alias=None):
     # print(i_string)
     steam_app_id = get_app_id_from_url(i_string)
 
-    country_currency = "fr"  # Currency queried in the Steam API
+    # Retrieve all metadata of a specified Steam app for several regions
+    country_currency_list = ["fr", "uk", "no"]  # Currency queried in the Steam API
+    steam_appsmeta = []
+    for country_currency in country_currency_list:
+        meta = get_app_metadata(steam_app_id, country_currency)
+        steam_appsmeta.append(meta)
 
-    # Price and info
-    # Retrieve all metadata of a specified Steam app
-    steam_appsmeta = get_app_metadata(steam_app_id, country_currency)
 
     # Test of keys existence
-    if "data" in steam_appsmeta[steam_app_id]:
-        title_corrected = steam_appsmeta[steam_app_id]["data"]["name"]
+    if "data" in steam_appsmeta[0][steam_app_id]:
+        title_corrected = steam_appsmeta[0][steam_app_id]["data"]["name"]
 
-        if "metacritic" in steam_appsmeta[steam_app_id]["data"]:
-            price_metacritic_score = steam_appsmeta[steam_app_id]["data"]["metacritic"]["score"]
-            string_metacritic = " — Metacritic: %s" % price_metacritic_score
-        else:
-            string_metacritic = ""
+        # Title and Release date
+        string_release_date_date = ''
+        if "release_date" in steam_appsmeta[0][steam_app_id]["data"]:
+            release_date_date = steam_appsmeta[0][steam_app_id]["data"]["release_date"]["date"]
 
-        modules.connection.send_message(title_corrected + string_metacritic, i_medium, i_alias)
+            # Convert release date to a YMD format
+            try:
+                release_date_date = datetime.datetime.strptime(release_date_date, '%d %b, %Y').strftime('%Y-%m-%d')
+            except ValueError:
+                pass
 
-        # Give Steam price
-        if "price_overview" in steam_appsmeta[steam_app_id]["data"]:
-            # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
-            price_initial = steam_appsmeta[steam_app_id]["data"]["price_overview"]['initial']
-            price_discount = steam_appsmeta[steam_app_id]["data"]["price_overview"]['discount_percent']
-            price_final = steam_appsmeta[steam_app_id]["data"]["price_overview"]['final']
-            price_currency = steam_appsmeta[steam_app_id]["data"]["price_overview"]['currency']
+            string_release_date_date = " — Released: %s" % release_date_date
 
-            if price_currency == 'EUR':
-                price_currency = '€'
+        modules.connection.send_message(title_corrected + string_release_date_date, i_medium, i_alias)
 
-            price_initial = float(price_initial)
-            price_initial *= 0.01  # Price was given in cents, switch to a more readable format
-            price_discount = int(price_discount)
-            price_final = float(price_final)
-            price_final *= 0.01  # Price was given in cents, switch to a more readable format
+        # Retrieve Steam price information
+        is_price_found = False
+        prices_list=[]
+        for item in steam_appsmeta:
+            if "price_overview" in item[steam_app_id]["data"]:
+                is_price_found = True
 
-            # Any discount on Steam?
-            if price_discount > 0:
-                string_discount = " (-%i%% of %.2f%s)" % (
-                                            price_discount, price_initial, price_currency)
+                # print(steam_price[steam_app_id]["data"]["price_overview"])  # complete price overview
+                price_initial = item[steam_app_id]["data"]["price_overview"]['initial']
+                price_discount = item[steam_app_id]["data"]["price_overview"]['discount_percent']
+                price_final = item[steam_app_id]["data"]["price_overview"]['final']
+                price_currency = item[steam_app_id]["data"]["price_overview"]['currency']
+
+                currency_symbol = ''
+                if price_currency == 'AUD':
+                    currency_symbol = 'A$'
+                elif price_currency == 'EUR':
+                    currency_symbol = '€'
+                elif price_currency == 'GBP':
+                    currency_symbol = '£'
+                elif price_currency == 'NOK':
+                    currency_symbol = 'kr'
+
+                price_initial = float(price_initial)
+                price_initial *= 0.01  # Price was given in cents, switch to a more readable format
+                price_discount = int(price_discount)
+                price_final = float(price_final)
+                price_final *= 0.01  # Price was given in cents, switch to a more readable format
+
+                # Any discount on Steam?
+                if price_discount > 0:
+                    string_discount = " (-%i%% of %.2f%s)" % (
+                        price_discount, price_initial, currency_symbol)
+                else:
+                    string_discount = ""
+
+                # Create a tuple with price, currency and string discount
+                tup_prices = price_final, price_currency, currency_symbol, string_discount
+                prices_list.append(tup_prices)
+
             else:
-                string_discount = ""
+                continue
 
-            modules.connection.send_message("Steam: %.2f%s" % (price_final, price_currency) + string_discount
-                                            + " — http://store.steampowered.com/app/%s" % steam_app_id, i_medium, i_alias)
+        # Create Price string to display
+        price_string = "Steam: "
+        if is_price_found:
+            prices_list.sort(key=operator.itemgetter(1), reverse=False)  # Sort list of prices per 3-letter currency
+
+            for element in prices_list[:-1]:  # Iterate over all but the last item
+                price_string += '%.2f%s%s' % (element[0], element[2], element[3])
+                price_string += ' | '
+
+            price_string += '%.2f%s%s' % (prices_list[-1][0], prices_list[-1][2], prices_list[-1][3])  # iterate last item
         else:
-            modules.connection.send_message("Steam: Not on sale" + " — http://store.steampowered.com/app/%s" % steam_app_id, i_medium, i_alias)
+            price_string += "Not on sale"
+        modules.connection.send_message("%s" % price_string, i_medium, i_alias)
 
         # Give AKS price
-        try:
-            aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
-            if aks_price_data is not None:
-                modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0], i_medium, i_alias)
-        except:
-            pass
+        # TODO: fix AKS
+        #try:
+        #    aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
+        #    if aks_price_data is not None:
+        #        modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0], i_medium, i_alias)
+        #except:
+        #    pass
 
-        if "about_the_game" in steam_appsmeta[steam_app_id]["data"]:
-            price_about_the_game = steam_appsmeta[steam_app_id]["data"]["about_the_game"]
 
-            # Substitute with nothing some html
+        # Steam additional data: URL, ratings
+        # URL
+        string_game_url = "http://store.steampowered.com/app/%s" % steam_app_id
+
+        # Metacritic // To be discontinued once reviews are integrated
+        string_metacritic = ''
+        if "metacritic" in steam_appsmeta[0][steam_app_id]["data"]:
+            metacritic_score = steam_appsmeta[0][steam_app_id]["data"]["metacritic"]["score"]
+            string_metacritic = " — Metacritic: %s" % metacritic_score
+
+        # Reviews
+        string_reviews = ''
+        steam_appreview_score = get_app_review_score(steam_app_id)
+        if "query_summary" in steam_appreview_score:
+            total_positive = int(steam_appreview_score['query_summary']["total_positive"])
+            total_reviews = int(steam_appreview_score['query_summary']["total_reviews"])
+
+            if total_reviews > 0:
+                score = total_positive * 100 / total_reviews
+                string_reviews = " — Reviews: %d%%" % score
+
+        modules.connection.send_message("%s%s%s" % (string_game_url, string_metacritic, string_reviews), i_medium, i_alias)
+
+
+        # About section
+        if "about_the_game" in steam_appsmeta[0][steam_app_id]["data"]:
+            price_about_the_game = steam_appsmeta[0][steam_app_id]["data"]["about_the_game"]
+
+            # Substitute with nothing some HTML tags
             price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
-            html_elements = ["<p>", "<br>", "<br />", "<strong>", "</strong>", "<i>", "</i>", '<img src="(.*)">',
-                             "<h2>", '<h2 class="(.*)">', "</h2>", "<li>", "</li>", '<ul class="(.*)">', "</ul>", "<u>", "</u>"
-                             '<a href="(.*)">', "</a>"]
+            html_elements = ['<a href=(.*)>', '</a>',
+                             '<br>', '<br />',
+                             '<h2>', '<h2 class=(.*)>', '</h2>',
+                             '<i>', '</i>',
+                             '<img src=(.*)>',
+                             '<li>', '</li>',
+                             '<p>',
+                             '<span class=(.*)>', '</span>',
+                             '<strong>', '</strong>',
+                             '<u>', '</u>',
+                             '<ul class=(.*)>', '</ul>']
             price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]", i_medium, i_alias)
@@ -426,7 +537,7 @@ def spy_player(i_string, i_medium, i_alias=None):
         m, s = divmod(element[1], 60)
         h, m = divmod(m, 60)
         modules.connection.send_message("- %s (%dh%02dmin)" % (title_corrected, h, m), i_medium, i_alias)
-        time.sleep(0.2)  # Reduce output speed for flood prevention
+        time.sleep(0.1)  # Reduce output speed for flood prevention
 
     # Display total playtime
     if has_played:
