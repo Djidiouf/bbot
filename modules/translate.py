@@ -40,7 +40,7 @@ def main(i_string, i_medium, i_alias=None):
         url = clean_url(url)
 
         # Ignore specific domains
-        ignored_domains = ("facebook.com", "imgur.com")
+        ignored_domains = ("facebook.com", "imgur.com", "drive.google.com", "youtube.com")
 
         # Extract using a custom cache for TLDExtract library due to permissions limitations
         ## https://github.com/john-kurkowski/tldextract/issues/9#issuecomment-4644805

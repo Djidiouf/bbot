@@ -199,7 +199,6 @@ while 1:  # infinite loop
     # money_inline
     if "money_inline" in authorised_features:
         if money_inline_regex.search(decoded_ircmsg, re.IGNORECASE):
-        #if any(char.isdigit() for char in decoded_ircmsg):
             try:
                 modules.money_inline.main(decoded_ircmsg, medium_used, alias_talking)
                 pass

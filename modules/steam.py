@@ -379,12 +379,47 @@ def game_review(i_string, i_medium, i_alias=None):
                                      '<u>', '</u>',
                                      '<ul class=(.*)>', '</ul>']
                     review_content = modules.textalteration.string_cleanup(review_content, html_elements)
+                    bbcode_tags =   ['[h1]', '[/h1]',
+                                     '[h2]', '[/h2]']
+                    review_content = modules.textalteration.string_replace(review_content, bbcode_tags, '*')
 
+                    # Display the metadata
                     modules.connection.send_message(" ", i_medium, i_alias)
-                    modules.connection.send_message("Most helpful %s review of the last 90 days:" % review_type, i_medium, i_alias)
-                    modules.connection.send_message("- Author: %s — Playtime: %dh" % (review_author, h), i_medium, i_alias)
-                    modules.connection.send_message("- Date: %s — Helpful score: %d%% — Permalink: %s" % (review_date, review_helpful_score, review_permalink), i_medium, i_alias)
-                    modules.connection.send_message("- Review: %s [...]" % review_content[0:350], i_medium, i_alias)
+                    modules.connection.send_message("Last 90 days top %a review: %s" % (review_type, review_permalink), i_medium, i_alias)
+                    modules.connection.send_message("Date: %s — Author's playtime: %dh — Helpful score: %d%%" % (review_date, h, review_helpful_score), i_medium, i_alias)
+
+                    # Display the review
+                    first = True
+                    post_chunk = "[...]"
+                    i = 0
+                    nb_message_allowed = 2
+
+                    # for chunk in split_string_list:
+                    for chunk, has_more in modules.textalteration.lookahead(modules.textalteration.chunk_string(review_content, 400)):
+                        i = i + 1
+                        # has_more = Bool, will be False if last element in list
+                        if first:
+                            first = False
+                            pre_chunk = '"'
+                        else:
+                            pre_chunk = '.. '
+
+                        # Last element
+                        if has_more:
+                            if i >= nb_message_allowed:
+                                post_chunk = ' [...]"'
+                            else:
+                                post_chunk = ' ..'
+                        else:
+                            post_chunk = '"'
+
+                        string_to_send = pre_chunk + chunk + post_chunk
+                        modules.connection.send_message(string_to_send, i_medium, i_alias)
+
+                        if i >= nb_message_allowed:
+                            break
+
+                    # modules.connection.send_message('"%s [...]"' % review_content[0:800], i_medium, i_alias)
 
 
     elif not app_id_details[0] and app_id_details[2]:
@@ -394,9 +429,6 @@ def game_review(i_string, i_medium, i_alias=None):
     else:
         modules.connection.send_message("Title not found", i_medium, i_alias)
         return
-
-
-
 
 
 def steam_inline(i_string, i_medium, i_alias=None):

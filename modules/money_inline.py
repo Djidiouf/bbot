@@ -1,16 +1,23 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
+import configparser
 import re
 import requests
+import os
 
 # Project modules
 import modules.connection
 import modules.textalteration
 
+# Read config file
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+blacklisted_currencies = config['money_inline']['blacklisted_currencies'].split(",")
+
 
 def get_rate(code1, code2):
-    url = 'https://free.currencyconverterapi.com/api/v5/convert?q=%s_%s&compact=y' % (code1, code2)
+    url = 'https://free.currencyconverterapi.com/api/v6/convert?q=%s_%s&compact=y' % (code1, code2)
     response = requests.get(url, stream=True)
 
     if response.status_code == 200:
@@ -34,11 +41,11 @@ def main(i_string, i_medium, i_alias=None):
     for item in all_cur:
         # Cleanup matches from unwanted separators
         not_wanted = [" ", "'"]
-        item = modules.textalteration.string_cleanup(item, not_wanted)
+        item = modules.textalteration.string_cleanup_simple(item, not_wanted)
 
         # English format of 1,000,000.00
         if "," in item and "." in item:
-            item = modules.textalteration.string_cleanup(item, ",")
+            item = modules.textalteration.string_cleanup_simple(item, ",")
 
         # Fix floating notation when coma are in used
         if "," in item:
@@ -49,34 +56,34 @@ def main(i_string, i_medium, i_alias=None):
 
         # Replace prefixed symbols by ISO suffixes
         if item[0] == 'A' and item[1] == '$':
-            item = modules.textalteration.string_cleanup(item, "A$")
+            item = modules.textalteration.string_cleanup_simple(item, "A$")
             item = item + ' ' + 'AUD'
             item_type = 'prefix'
         elif item[0] == '$':
-            item = modules.textalteration.string_cleanup(item, "$")
+            item = modules.textalteration.string_cleanup_simple(item, "$")
             item = item + ' ' + 'USD'
             item_type = 'prefix'
         elif item[0] == '€':
-            item = modules.textalteration.string_cleanup(item, "€")
+            item = modules.textalteration.string_cleanup_simple(item, "€")
             item = item + ' ' + 'EUR'
             item_type = 'prefix'
         elif item[0] == '£':
-            item = modules.textalteration.string_cleanup(item, "£")
+            item = modules.textalteration.string_cleanup_simple(item, "£")
             item = item + ' ' + 'GBP'
             item_type = 'prefix'
 
         # Replace suffixed symbols by ISO suffixes
         if item[-2] == 'A' and item[-1] == '$':
-            item = modules.textalteration.string_cleanup(item, "A$")
+            item = modules.textalteration.string_cleanup_simple(item, "A$")
             item = item + '' + 'AUD'
         elif item[-1] == '$':
-            item = modules.textalteration.string_cleanup(item, "$")
+            item = modules.textalteration.string_cleanup_simple(item, "$")
             item = item + '' + 'USD'
         elif item[-1] == '€':
-            item = modules.textalteration.string_cleanup(item, "€")
+            item = modules.textalteration.string_cleanup_simple(item, "€")
             item = item + '' + 'EUR'
         elif item[-1] == '£':
-            item = modules.textalteration.string_cleanup(item, "£")
+            item = modules.textalteration.string_cleanup_simple(item, "£")
             item = item + '' + 'GBP'
 
         # Prefix floating character by 0 if needed to avoid .35 AUD
@@ -94,6 +101,10 @@ def main(i_string, i_medium, i_alias=None):
         tuple_string = item.partition(' ')
         amount = tuple_string[0]
         code = tuple_string[2]
+
+        # Blacklist currency codes
+        if code in blacklisted_currencies:
+            return
 
         # amount needs to be int and not string
         amount = float(amount)
