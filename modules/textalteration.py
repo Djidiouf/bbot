@@ -39,22 +39,21 @@ def list_to_string(i_list):
     return list_as_string
 
 
-def string_replace(i_string, i_pattern, newpattern):
+def string_replace(i_string, i_patterns, i_replacement_pattern):
     """
     Substitute specific pattern in a string by another
     :param i_string: a string
-    :param pattern: the pattern of character or text which need to be substituted
-    :param newpattern: replacement pattern
-    :return: a string corrected
+    :param i_patterns: the pattern which needs to be substituted
+    :param i_replacement_pattern: replacement pattern
+    :return: the corrected string
     """
-    #pattern = re.escape(pattern)
-    #string_corrected = re.sub(pattern, newpattern, i_string)
-    #return string_corrected
     string_corrected = i_string
 
-    for pattern in i_pattern:
-        pattern = re.escape(pattern)
-        string_corrected = re.sub(pattern, newpattern, string_corrected)
+    if isinstance(i_patterns, list):
+        for pattern in i_patterns:
+            string_corrected = re.sub(re.escape(pattern), i_replacement_pattern, string_corrected)
+    elif isinstance(i_patterns, str):
+        string_corrected = re.sub(re.escape(i_patterns), i_replacement_pattern, string_corrected)
 
     return string_corrected
 

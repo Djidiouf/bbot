@@ -17,6 +17,7 @@ import time
 import importlib
 import chardet  # detect encoding
 import time  # Give very precise time with time.clock()
+import traceback  # Display error
 
 # Project modules
 import modules.aws
@@ -93,7 +94,11 @@ def regex_search_arguments(message, expression):
 
 def report_error(i_cmd, i_error, i_msg, i_medium, i_admin):
     modules.connection.send_message(("Call %s: %s" % (i_cmd, i_msg)), i_medium, i_admin)
-    modules.connection.send_message(("Error %s: %s" % (i_cmd, i_error)), i_medium, i_admin)
+
+    errors_output = i_error.split('\n')
+
+    for line in errors_output:
+        modules.connection.send_message(("Error %s: %s" % (i_cmd, line)), i_medium, i_admin)
 
 
 def cmd_multichan(i_cmd, i_module, i_decoded_ircmsg, i_medium, i_alias, i_botnick, i_admin, i_input_sub=None, i_input_add=None):
@@ -111,7 +116,7 @@ def cmd_multichan(i_cmd, i_module, i_decoded_ircmsg, i_medium, i_alias, i_botnic
         else:
             modules.help.main(i_cmd, "error", i_medium, i_alias)
     except Exception:
-        report_error("%s (%s)" % (i_cmd, i_medium), sys.exc_info()[0], i_decoded_ircmsg, i_botnick, i_admin)
+        report_error("%s (%s)" % (i_cmd, i_medium), traceback.format_exc(), i_decoded_ircmsg, i_botnick, i_admin)
         modules.help.main(i_cmd, "error", i_medium, i_alias)
 
 

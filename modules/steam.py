@@ -14,7 +14,7 @@ import time  # Give very precise time with time.clock()
 import datetime  # Deal with date and allow conversion of date format
 
 # Third-party modules
-import html2text  # install html2text
+# import html2text  # install html2text
 
 # Project modules
 import modules.textalteration
@@ -50,7 +50,7 @@ def get_app_id(i_string):
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
-        line['name'] = modules.textalteration.string_cleanup_simple(line['name'], special_chars)  # TODO: Improve perf as this costs a second
+        line['name'] = modules.textalteration.string_cleanup_simple(line['name'], special_chars)
         if line['name'].lower() == title_requested:
             is_title_found = True
 
@@ -89,7 +89,8 @@ def get_player_id(i_string, steam_api_key):
     """
     player_id_is_found = False
     player_id = False
-    url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % (steam_api_key, i_string)
+    url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % \
+                            (steam_api_key, i_string)
     steam_player_id_filename = 'steam_player_id_%s.json' % i_string
     steam_player_id = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
 
@@ -121,31 +122,37 @@ def get_owned_games(player_id, steam_api_key):
     :param steam_api_key:
     :return:
     """
-    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
+    url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/' \
+                            '?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
     steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
     steam_player_meta = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
 
     return steam_player_meta
 
 
-def get_app_review_detailed(i_steam_id, i_filter, i_language, i_day_range, i_start_offset, i_review_type, i_purchase_type,
-                            i_num_per_page):
+def get_app_review_detailed(i_steam_id, i_filter, i_language, i_day_range, i_start_offset, i_review_type,
+                            i_purchase_type, i_num_per_page):
     """
     Retrieve the review of a title from the Steam API https://partner.steamgames.com/doc/store/getreviews
-    :param steam_id:
-    :param filter:            recent, updated, all
-    :param language:          see https://partner.steamgames.com/documentation/languages (and use the API language code list) or pass “all” for all reviews
-    :param day_range:         range from now to n days ago to look for helpful reviews. Only applicable for the “all” filter.
-    :param start_offset:      reviews are returned in batches of 20, so pass 0 for the first set, then 20 for the next set, etc.
-    :param review_type:       all, positive, negative
-    :param purchase_type:     all, non_steam_purchase, steam
-    :param num_per_page:      by default, up to 20 reviews will be returned. More reviews can be returned based on this parameter (with a maximum of 100 reviews)
+    :param i_steam_id:
+    :param i_filter:            recent, updated, all
+    :param i_language:          see https://partner.steamgames.com/documentation/languages (and use the API language
+                                code list) or pass “all” for all reviews
+    :param i_day_range:         range from now to n days ago to look for helpful reviews. Only applicable for the
+                                “all” filter.
+    :param i_start_offset:      reviews are returned in batches of 20, so pass 0 for the first set, then 20 for the
+                                next set, etc.
+    :param i_review_type:       all, positive, negative
+    :param i_purchase_type:     all, non_steam_purchase, steam
+    :param i_num_per_page:      by default, up to 20 reviews will be returned. More reviews can be returned based on
+                                this parameter (with a maximum of 100 reviews)
     :return:
     """
     url_steam_appsreview = 'https://store.steampowered.com/appreviews/%s?json=1' \
                            '&filter=%s&language=%s&day_range=%s&start_offset=%s' \
-                           '&review_type=%s&purchase_type=%s&num_per_page=%s' % (
-    i_steam_id, i_filter, i_language, i_day_range, i_start_offset, i_review_type, i_purchase_type, i_num_per_page)
+                           '&review_type=%s&purchase_type=%s&num_per_page=%s' % \
+                           (i_steam_id, i_filter, i_language, i_day_range,
+                            i_start_offset, i_review_type, i_purchase_type, i_num_per_page)
     steam_appsreview_filename = 'steam_appsreviews_%s_detailed_%s.json' % (i_steam_id, i_review_type)
     steam_appsreview = retrieve_internet_content(url_steam_appsreview, steam_appsreview_filename)
 
@@ -155,7 +162,7 @@ def get_app_review_detailed(i_steam_id, i_filter, i_language, i_day_range, i_sta
 def get_app_review_score(i_steam_id):
     """
     Retrieve the score review of a title from the Steam API https://partner.steamgames.com/doc/store/getreviews
-    :param steam_id:
+    :param i_steam_id:
     :return:
     """
     url_steam_appsreview_score =\
@@ -320,21 +327,21 @@ def game_review(i_string, i_medium, i_alias=None):
             reviews_helpful_duo = []
 
             steam_appreview_reply_positive = get_app_review_detailed(steam_app_id,
-                                                            i_filter='all',
-                                                            i_language='english',
-                                                            i_day_range='90',
-                                                            i_start_offset='0',
-                                                            i_review_type='positive',
-                                                            i_purchase_type='steam',
-                                                            i_num_per_page='1')
+                                                                     i_filter='all',
+                                                                     i_language='english',
+                                                                     i_day_range='90',
+                                                                     i_start_offset='0',
+                                                                     i_review_type='positive',
+                                                                     i_purchase_type='steam',
+                                                                     i_num_per_page='1')
             steam_appreview_reply_negative = get_app_review_detailed(steam_app_id,
-                                                            i_filter='all',
-                                                            i_language='english',
-                                                            i_day_range='90',
-                                                            i_start_offset='0',
-                                                            i_review_type='negative',
-                                                            i_purchase_type='steam',
-                                                            i_num_per_page='1')
+                                                                     i_filter='all',
+                                                                     i_language='english',
+                                                                     i_day_range='90',
+                                                                     i_start_offset='0',
+                                                                     i_review_type='negative',
+                                                                     i_purchase_type='steam',
+                                                                     i_num_per_page='1')
 
             reviews_helpful_duo.append(steam_appreview_reply_positive)
             reviews_helpful_duo.append(steam_appreview_reply_negative)
@@ -343,19 +350,21 @@ def game_review(i_string, i_medium, i_alias=None):
                 if "reviews" in item:
                     review_author = item["reviews"][0]["author"]["steamid"]
                     review_playtime = item["reviews"][0]["author"]["playtime_forever"]
-                    review_date = datetime.datetime.utcfromtimestamp(int(item["reviews"][0]["timestamp_updated"])).strftime('%Y-%m-%d')
+                    timestamp = int(item["reviews"][0]["timestamp_updated"])
+                    review_date = datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
                     review_type = item["reviews"][0]["voted_up"]
                     review_helpful_score = item["reviews"][0]["weighted_vote_score"]
-                    review_permalink = "https://steamcommunity.com/profiles/%s/recommended/%s" % (review_author, steam_app_id)
+                    review_permalink = "https://steamcommunity.com/profiles/%s/recommended/%s" % \
+                                       (review_author, steam_app_id)
                     review_content = item["reviews"][0]["review"]
 
-                    # review type
+                    # Review type
                     if review_type:
                         review_type = "positive"
                     else:
                         review_type = "negative"
 
-                    # helpful score
+                    # Helpful score
                     review_helpful_score = float(review_helpful_score) * 100
 
                     # Playtime
@@ -379,18 +388,19 @@ def game_review(i_string, i_medium, i_alias=None):
                                      '<u>', '</u>',
                                      '<ul class=(.*)>', '</ul>']
                     review_content = modules.textalteration.string_cleanup(review_content, html_elements)
-                    bbcode_tags =   ['[h1]', '[/h1]',
-                                     '[h2]', '[/h2]']
+                    bbcode_tags = ['[h1]', '[/h1]',
+                                   '[h2]', '[/h2]']
                     review_content = modules.textalteration.string_replace(review_content, bbcode_tags, '*')
 
                     # Display the metadata
                     modules.connection.send_message(" ", i_medium, i_alias)
-                    modules.connection.send_message("Last 90 days top %a review: %s" % (review_type, review_permalink), i_medium, i_alias)
-                    modules.connection.send_message("Date: %s — Author's playtime: %dh — Helpful score: %d%%" % (review_date, h, review_helpful_score), i_medium, i_alias)
+                    modules.connection.send_message("Last 90 days top %a review: %s" %
+                                                    (review_type, review_permalink), i_medium, i_alias)
+                    modules.connection.send_message("Date: %s — Author's playtime: %dh — Helpful score: %d%%" %
+                                                    (review_date, h, review_helpful_score), i_medium, i_alias)
 
                     # Display the review
                     first = True
-                    post_chunk = "[...]"
                     i = 0
                     nb_message_allowed = 2
 
@@ -419,9 +429,6 @@ def game_review(i_string, i_medium, i_alias=None):
                         if i >= nb_message_allowed:
                             break
 
-                    # modules.connection.send_message('"%s [...]"' % review_content[0:800], i_medium, i_alias)
-
-
     elif not app_id_details[0] and app_id_details[2]:
         modules.connection.send_message("Exact title not found, you can try:", i_medium, i_alias)
         for item in app_id_details[2][:results_nb]:  # Display <results_nb> first items
@@ -442,7 +449,6 @@ def steam_inline(i_string, i_medium, i_alias=None):
     for country_currency in country_currency_list:
         meta = get_app_metadata(steam_app_id, country_currency)
         steam_appsmeta.append(meta)
-
 
     # Test of keys existence
     if "data" in steam_appsmeta[0][steam_app_id]:
@@ -465,7 +471,7 @@ def steam_inline(i_string, i_medium, i_alias=None):
 
         # Retrieve Steam price information
         is_price_found = False
-        prices_list=[]
+        prices_list = []
         for item in steam_appsmeta:
             if "price_overview" in item[steam_app_id]["data"]:
                 is_price_found = True
@@ -515,20 +521,20 @@ def steam_inline(i_string, i_medium, i_alias=None):
                 price_string += '%.2f%s%s' % (element[0], element[2], element[3])
                 price_string += ' | '
 
-            price_string += '%.2f%s%s' % (prices_list[-1][0], prices_list[-1][2], prices_list[-1][3])  # iterate last item
+            # Iterate last item
+            price_string += '%.2f%s%s' % (prices_list[-1][0], prices_list[-1][2], prices_list[-1][3])
         else:
             price_string += "Not on sale"
         modules.connection.send_message("%s" % price_string, i_medium, i_alias)
 
         # Give AKS price
         # TODO: fix AKS
-        #try:
-        #    aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
-        #    if aks_price_data is not None:
-        #        modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0], i_medium, i_alias)
-        #except:
-        #    pass
-
+        # try:
+        #     aks_price_data = modules.steam_secondary.get_russian_price(title_corrected)
+        #     if aks_price_data is not None:
+        #         modules.connection.send_message("AKS: " + aks_price_data[1] + " — " + aks_price_data[0], i_medium, i_alias)
+        # except:
+        #     pass
 
         # Steam additional data: URL, ratings
         # URL
@@ -551,8 +557,8 @@ def steam_inline(i_string, i_medium, i_alias=None):
                 score = total_positive * 100 / total_reviews
                 string_reviews = " — Reviews: %d%%" % score
 
-        modules.connection.send_message("%s%s%s" % (string_game_url, string_metacritic, string_reviews), i_medium, i_alias)
-
+        modules.connection.send_message("%s%s%s" %
+                                        (string_game_url, string_metacritic, string_reviews), i_medium, i_alias)
 
         # About section
         if "about_the_game" in steam_appsmeta[0][steam_app_id]["data"]:
@@ -584,7 +590,8 @@ def steam_inline(i_string, i_medium, i_alias=None):
 
     if nb_owners > 0:
         # Cleanup
-        modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records), i_medium, i_alias)
+        modules.connection.send_message("Owned by: %s" %
+                                        modules.textalteration.list_to_string(owners_records), i_medium, i_alias)
     else:
         modules.connection.send_message("Owned by: nobody", i_medium, i_alias)
 
@@ -596,6 +603,8 @@ def main(i_string, i_medium, i_alias=None):
     using Steam API: http://store.steampowered.com/api/appdetails?appids=392400&cc=fr
 
     :param i_string: a string with these elements: "<Game Title>"
+    :param i_medium: Medium used to send the message, either through a channel or directly
+    :param i_alias: User alias
     :print: parsed answer about Steam title from the API
     """
     results_nb = 3           # Number of results which will be displayed if an exact natch didn't occur
@@ -619,7 +628,10 @@ def main(i_string, i_medium, i_alias=None):
             nb_owners = len(owners_records)
 
             if nb_owners > 0:
-                modules.connection.send_message("Owned by: %s" % modules.textalteration.list_to_string(owners_records), i_medium, i_alias)
+                print(owners_records)
+                modules.connection.send_message("Owned by: %s" %
+                                                modules.textalteration.list_to_string(owners_records),
+                                                i_medium, i_alias)
             else:
                 modules.connection.send_message("Owned by: nobody", i_medium, i_alias)
         elif not is_steamapp_found and app_id_details[2]:
@@ -671,6 +683,8 @@ def spy_player(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs "!steam spy <PlayerName>"
     :param i_string:
+    :param i_medium: Medium used to send the message, either through a channel or directly
+    :param i_alias: User alias
     :return:
     """
     player_name = i_string
@@ -692,7 +706,7 @@ def spy_player(i_string, i_medium, i_alias=None):
     playtime_2_weeks_total = 0
 
     # List of games titles and playtimes
-    games_played=[]
+    games_played = []
 
     if "games" in owned_games["response"]:
         for line in owned_games["response"]["games"]:
@@ -744,6 +758,8 @@ def player_owns_game(i_string, i_medium, i_alias=None):
     """
     Responds to a user that inputs "!steam own <PlayerName> <GameTitle>"
     :param i_string:
+    :param i_medium: Medium used to send the message, either through a channel or directly
+    :param i_alias: User alias
     :return:
     """
     tuple_string = i_string.partition(' ')
@@ -786,7 +802,8 @@ def player_owns_game(i_string, i_medium, i_alias=None):
                     m, s = divmod(playtime_forever, 60)
                     h, m = divmod(m, 60)
 
-                    modules.connection.send_message("%s has played %s for %dh%02dmin" % (player_name, title_corrected, h, m), i_medium, i_alias)
+                    modules.connection.send_message("%s has played %s for %dh%02dmin" %
+                                                    (player_name, title_corrected, h, m), i_medium, i_alias)
                     break
 
         if game_found is False:
