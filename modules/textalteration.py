@@ -18,6 +18,22 @@ def string_cleanup(x, notwanted):
     return x
 
 
+def string_cleanup_html(x):
+    html_elements = ['<a href=(.*)>', '</a>',
+                     '<br>', '<br />',
+                     '<h2>', '<h2 class=(.*)>', '</h2>',
+                     '<i>', '</i>',
+                     '<img src=(.*)>',
+                     '<li>', '</li>',
+                     '<p>',
+                     '<span class=(.*)>', '</span>',
+                     '<strong>', '</strong>',
+                     '<u>', '</u>',
+                     '<ul class=(.*)>', '</ul>']
+    x = string_cleanup(x, html_elements)
+    return x
+
+
 def string_cleanup_simple(x, notwanted):
     """
     Substitute specific elements in a string by nothing

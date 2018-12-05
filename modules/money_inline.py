@@ -51,6 +51,9 @@ def main(i_string, i_medium, i_alias=None):
         if "," in item:
             item = modules.textalteration.string_replace(item, ",", ".")
 
+        # Fix multiple floating dot and keep only the first one in string
+        item = re.sub('\.(?=.*?\.)', '', item)
+
         # By default, currency is considered defined as a ISO suffix
         item_type = 'suffix'
 
@@ -93,9 +96,6 @@ def main(i_string, i_medium, i_alias=None):
         # Separate amount from currency code with a space
         if item_type == "suffix":
             item = re.sub(r'([A-Z]{3})', r" \1", item)
-
-        # Debug print
-        # print(item_type + ": " + item)
 
         # divide a string in a tuple: 'str1', 'separator', 'str2'
         tuple_string = item.partition(' ')

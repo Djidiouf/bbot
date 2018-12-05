@@ -375,19 +375,7 @@ def game_review(i_string, i_medium, i_alias=None):
                     # Review content: Cleanup
                     review_content = modules.textalteration.string_replace(review_content, "\r", " ")
                     review_content = modules.textalteration.string_replace(review_content, "\n", " ")
-
-                    html_elements = ['<a href=(.*)>', '</a>',
-                                     '<br>', '<br />',
-                                     '<h2>', '<h2 class=(.*)>', '</h2>',
-                                     '<i>', '</i>',
-                                     '<img src=(.*)>',
-                                     '<li>', '</li>',
-                                     '<p>',
-                                     '<span class=(.*)>', '</span>',
-                                     '<strong>', '</strong>',
-                                     '<u>', '</u>',
-                                     '<ul class=(.*)>', '</ul>']
-                    review_content = modules.textalteration.string_cleanup(review_content, html_elements)
+                    review_content = modules.textalteration.string_cleanup_html(review_content)
                     bbcode_tags = ['[h1]', '[/h1]',
                                    '[h2]', '[/h2]']
                     review_content = modules.textalteration.string_replace(review_content, bbcode_tags, '*')
@@ -564,20 +552,9 @@ def steam_inline(i_string, i_medium, i_alias=None):
         if "about_the_game" in steam_appsmeta[0][steam_app_id]["data"]:
             price_about_the_game = steam_appsmeta[0][steam_app_id]["data"]["about_the_game"]
 
-            # Substitute with nothing some HTML tags
+            # Cleanup Game about section
             price_about_the_game = modules.textalteration.string_replace(price_about_the_game, "\r", " ")
-            html_elements = ['<a href=(.*)>', '</a>',
-                             '<br>', '<br />',
-                             '<h2>', '<h2 class=(.*)>', '</h2>',
-                             '<i>', '</i>',
-                             '<img src=(.*)>',
-                             '<li>', '</li>',
-                             '<p>',
-                             '<span class=(.*)>', '</span>',
-                             '<strong>', '</strong>',
-                             '<u>', '</u>',
-                             '<ul class=(.*)>', '</ul>']
-            price_about_the_game = modules.textalteration.string_cleanup(price_about_the_game, html_elements)
+            price_about_the_game = modules.textalteration.string_cleanup_html(price_about_the_game)
 
             modules.connection.send_message("About: %s" % price_about_the_game[0:350] + " [...]", i_medium, i_alias)
 
