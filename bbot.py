@@ -133,7 +133,7 @@ while 1:  # infinite loop
 
     # Decode binary (try first using utf-8 before trying to guess the encoding)
     encoding = chardet.detect(ircmsg)['encoding']   # Detect encoding used
-    if type(encoding) == None:
+    if type(encoding) is None:
         encoding = 'utf-8'
 
     try:
@@ -168,7 +168,7 @@ while 1:  # infinite loop
         else:  # do not process any other system message
             continue
 
-    # FEATURES ---------------------------------------------------------------------------------------------------------
+    # FEATURES [SERVER] ------------------------------------------------------------------------------------------------
     # AWS SQS Queue - Poll Given SQS queue
     if "aws_sqs" in authorised_features and config['aws']['sqs_queue']:
         cmd = "SQS - Retrieve message"
@@ -182,6 +182,60 @@ while 1:  # infinite loop
     if decoded_ircmsg.find(":Hello %s" % botnick) != -1 or decoded_ircmsg.find(":hello %s" % botnick) != -1:
         modules.speak.hello()
 
+    # HANDLERS ---------------------------------------------------------------------------------------------------------
+    if "!aws" in authorised_handlers and aws_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!aws", "aws", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!calc" in authorised_handlers and calc_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!calc", "calc", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!finance" in authorised_handlers and finance_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!finance", "finance", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!help" in authorised_handlers and help_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!help", "help", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_add="detailed")
+        continue
+
+    elif "!imdb" in authorised_handlers and imdb_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!imdb", "imdb", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!meet" in authorised_handlers and meet_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!meet", "meet", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!money" in authorised_handlers and money_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!money", "money", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!ping" in authorised_handlers and ping_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!ping", "ping", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_sub=user_ip)
+        continue
+
+    elif "!quit" in authorised_handlers and quit_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!quit", "quit", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_sub="unset")
+        continue
+
+    elif "!say" in authorised_handlers and say_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!say", "speak", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!steam" in authorised_handlers and steam_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!steam", "steam", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!time" in authorised_handlers and time_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!time", "time", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    elif "!yt" in authorised_handlers and yt_regex.search(decoded_ircmsg, re.IGNORECASE):
+        cmd_multichan("!yt", "youtube", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
+        continue
+
+    # FEATURES [USER] --------------------------------------------------------------------------------------------------
     # linkinline
     if "linkinline" in authorised_features:
         if decoded_ircmsg.find("http://") != -1 or decoded_ircmsg.find("https://") != -1:
@@ -190,6 +244,15 @@ while 1:  # infinite loop
                 pass
             except:
                 report_error("linkinline", traceback.format_exc(), decoded_ircmsg, botnick, admins_list[0])
+
+    # money_inline
+    if "money_inline" in authorised_features:
+        if money_inline_regex.search(decoded_ircmsg, re.IGNORECASE):
+            try:
+                modules.money_inline.main(decoded_ircmsg, medium_used, alias_talking)
+                pass
+            except:
+                report_error("money_inline", traceback.format_exc(), decoded_ircmsg, botnick, admins_list[0])
 
     # steaminline
     if "steaminline" in authorised_features:
@@ -201,52 +264,3 @@ while 1:  # infinite loop
                 pass
             except:
                 report_error("steaminline", traceback.format_exc(), decoded_ircmsg, botnick, admins_list[0])
-
-    # money_inline
-    if "money_inline" in authorised_features:
-        if money_inline_regex.search(decoded_ircmsg, re.IGNORECASE):
-            try:
-                modules.money_inline.main(decoded_ircmsg, medium_used, alias_talking)
-                pass
-            except:
-                report_error("money_inline", traceback.format_exc(), decoded_ircmsg, botnick, admins_list[0])
-
-    # HANDLERS ---------------------------------------------------------------------------------------------------------
-    if "!aws" in authorised_handlers and aws_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!aws", "aws", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!calc" in authorised_handlers and calc_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!calc", "calc", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!finance" in authorised_handlers and finance_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!finance", "finance", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!help" in authorised_handlers and help_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!help", "help", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_add="detailed")
-
-    elif "!imdb" in authorised_handlers and imdb_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!imdb", "imdb", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!meet" in authorised_handlers and meet_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!meet", "meet", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!money" in authorised_handlers and money_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!money", "money", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!ping" in authorised_handlers and ping_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!ping", "ping", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_sub=user_ip)
-
-    elif "!quit" in authorised_handlers and quit_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!quit", "quit", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0], i_input_sub="unset")
-
-    elif "!say" in authorised_handlers and say_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!say", "speak", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!steam" in authorised_handlers and steam_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!steam", "steam", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!time" in authorised_handlers and time_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!time", "time", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])
-
-    elif "!yt" in authorised_handlers and yt_regex.search(decoded_ircmsg, re.IGNORECASE):
-        cmd_multichan("!yt", "youtube", decoded_ircmsg, medium_used, alias_talking, botnick, admins_list[0])

@@ -57,7 +57,7 @@ def main(i_string, mode, i_medium=None, i_alias=None):
     elif i_string == "!money":
         modules.connection.send_message("Usage: !money {number} {CODE1}:{CODE2}", i_medium, i_alias)
         if mode == "detailed":
-            modules.connection.send_message("Purpose: Convert an amount from one currency to another", i_medium, i_alias)
+            modules.connection.send_message("Purpose: Convert an amount from one currency to another (rate is the last one available)", i_medium, i_alias)
             modules.connection.send_message("Tip: Valid currency codes: https://en.wikipedia.org/wiki/ISO_4217", i_medium, i_alias)
 
     elif i_string == "!ping":
@@ -102,6 +102,11 @@ def main(i_string, mode, i_medium=None, i_alias=None):
         modules.connection.send_message("Usage: Type a URL into the chat", i_medium, i_alias)
         if mode == "detailed":
             modules.connection.send_message("Purpose: Provide the following services: a Google Translate URL if needed", i_medium, i_alias)
+
+    elif i_string == "moneyinline":
+        modules.connection.send_message("Usage: Type an amount with a currency marker into the chat", i_medium, i_alias)
+        if mode == "detailed":
+            modules.connection.send_message("Purpose: Convert the given amount into other specific currencies (rate is updated every 24h)", i_medium, i_alias)
 
     elif i_string == "steaminline":
         modules.connection.send_message("Usage: Type a Steam URL into the chat", i_medium, i_alias)

@@ -8,6 +8,7 @@ __pycache__/
 
 ## Cache directory
 cache-steam/
+cache-money/
 
 ## Config file
 config.cfg

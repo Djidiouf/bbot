@@ -1,14 +1,10 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-import json  # Library for being able to read Json file
-import time  # anti flood if needed: time.sleep(2)
 import os       # For instruction related to the OS
 import shutil   # Used for OS tools
 import configparser
 import re  # Regular Expression library
-import sys
-import requests  # Open url request on website
 import operator  # Get item in list
 import time  # Give very precise time with time.clock()
 import datetime  # Deal with date and allow conversion of date format
@@ -17,9 +13,10 @@ import datetime  # Deal with date and allow conversion of date format
 # import html2text  # install html2text
 
 # Project modules
-import modules.textalteration
 import modules.connection
+import modules.meta_download
 import modules.steam_secondary
+import modules.textalteration
 
 
 def get_app_id(i_string):
@@ -46,7 +43,7 @@ def get_app_id(i_string):
 
     url_appsid = "http://api.steampowered.com/ISteamApps/GetAppList/v0001/"
     steam_appsid_filename = 'steam_appsid.json'  # Name of the local file
-    steam_appsid = retrieve_internet_content(url_appsid, steam_appsid_filename)
+    steam_appsid = modules.meta_download.dl_url_content(url_appsid, steam_appsid_filename, 'cache-steam', 604800)
 
     # Read the JSON data file
     for line in steam_appsid['applist']['apps']['app']:
@@ -92,7 +89,7 @@ def get_player_id(i_string, steam_api_key):
     url_steam_player_meta = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=%s&vanityurl=%s' % \
                             (steam_api_key, i_string)
     steam_player_id_filename = 'steam_player_id_%s.json' % i_string
-    steam_player_id = retrieve_internet_content(url_steam_player_meta, steam_player_id_filename)
+    steam_player_id = modules.meta_download.dl_url_content(url_steam_player_meta, steam_player_id_filename, 'cache-steam', 2592000)
 
     if "steamid" in steam_player_id["response"]:
         player_id = steam_player_id["response"]["steamid"]
@@ -110,7 +107,7 @@ def get_app_metadata(steam_id, cc_code):
     """
     url_steam_appsmeta = 'http://store.steampowered.com/api/appdetails?appids=%s&cc=%s' % (steam_id, cc_code)
     steam_appsmeta_filename = 'steam_appsmeta_%s_%s.json' % (steam_id, cc_code)
-    steam_appsmeta = retrieve_internet_content(url_steam_appsmeta, steam_appsmeta_filename)
+    steam_appsmeta = modules.meta_download.dl_url_content(url_steam_appsmeta, steam_appsmeta_filename, 'cache-steam', 86400)
 
     return steam_appsmeta
 
@@ -125,7 +122,7 @@ def get_owned_games(player_id, steam_api_key):
     url_steam_player_meta = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/' \
                             '?key=%s&steamid=%s&include_played_free_games=1&format=json' % (steam_api_key, player_id)
     steam_player_meta_filename = 'steam_player_meta_%s.json' % player_id
-    steam_player_meta = retrieve_internet_content(url_steam_player_meta, steam_player_meta_filename)
+    steam_player_meta = modules.meta_download.dl_url_content(url_steam_player_meta, steam_player_meta_filename, 'cache-steam', 1800)
 
     return steam_player_meta
 
@@ -148,15 +145,15 @@ def get_app_review_detailed(i_steam_id, i_filter, i_language, i_day_range, i_sta
                                 this parameter (with a maximum of 100 reviews)
     :return:
     """
-    url_steam_appsreview = 'https://store.steampowered.com/appreviews/%s?json=1' \
-                           '&filter=%s&language=%s&day_range=%s&start_offset=%s' \
-                           '&review_type=%s&purchase_type=%s&num_per_page=%s' % \
-                           (i_steam_id, i_filter, i_language, i_day_range,
-                            i_start_offset, i_review_type, i_purchase_type, i_num_per_page)
-    steam_appsreview_filename = 'steam_appsreviews_%s_detailed_%s.json' % (i_steam_id, i_review_type)
-    steam_appsreview = retrieve_internet_content(url_steam_appsreview, steam_appsreview_filename)
+    url_steam_review = 'https://store.steampowered.com/appreviews/%s?json=1' \
+                       '&filter=%s&language=%s&day_range=%s&start_offset=%s' \
+                       '&review_type=%s&purchase_type=%s&num_per_page=%s' % \
+                       (i_steam_id, i_filter, i_language, i_day_range,
+                        i_start_offset, i_review_type, i_purchase_type, i_num_per_page)
+    steam_review_filename = 'steam_reviews_%s_detailed_%s.json' % (i_steam_id, i_review_type)
+    steam_review = modules.meta_download.dl_url_content(url_steam_review, steam_review_filename, 'cache-steam', 604800)
 
-    return steam_appsreview
+    return steam_review
 
 
 def get_app_review_score(i_steam_id):
@@ -165,43 +162,13 @@ def get_app_review_score(i_steam_id):
     :param i_steam_id:
     :return:
     """
-    url_steam_appsreview_score =\
+    url_steam_review_score =\
         'https://store.steampowered.com/appreviews/%s?json=1&filter=%s&language=%s&num_per_page=%s'\
-        % (i_steam_id, 'all', 'all', '1')
-    steam_appsreview_score_filename = 'steam_appsreviews_%s_score.json' % i_steam_id
-    steam_appsreview_score = retrieve_internet_content(url_steam_appsreview_score, steam_appsreview_score_filename)
+        % (i_steam_id, 'all', 'all', '0')
+    steam_review_score_filename = 'steam_reviews_%s_score.json' % i_steam_id
+    steam_review_score = modules.meta_download.dl_url_content(url_steam_review_score, steam_review_score_filename, 'cache-steam', 604800)
 
-    return steam_appsreview_score
-
-
-def retrieve_internet_content(i_url, i_filename):
-    # Cache properties
-    bbot_work_dir = os.path.dirname(os.path.realpath(sys.argv[0])) + os.sep
-    cache_steam_dir = bbot_work_dir + 'cache-steam'  # Name of the directory where files will be cached
-    cache_age = 1800  # 1800 = 30 min ; 86400 = 24hr
-    filename_path = os.path.join(cache_steam_dir, i_filename)  # Name of the local file
-
-    # Other Variables
-    now = time.time()
-    url = i_url
-
-    # Method CACHE: Retrieve and Store local file --------------
-    if not os.path.exists(cache_steam_dir):  # Test if the cache directory exists
-        os.makedirs(cache_steam_dir)
-
-    # Download the file if it doesn't exist or is too old
-    # TODO: Reverse the if logic
-    if not os.path.isfile(filename_path) or os.stat(filename_path).st_mtime < (now - cache_age):
-        response = requests.get(url, stream=True)
-        if response.status_code == 200:
-            with open(filename_path, 'wb') as f:
-                f.write(response.content)
-            content = response.json()
-            return content
-    else:
-        with open(filename_path, encoding="utf8") as f:
-            content = json.load(f)
-        return content
+    return steam_review_score
 
 
 def get_owners(steam_id):
@@ -717,6 +684,7 @@ def spy_player(i_string, i_medium, i_alias=None):
     # Display total playtime
     if has_played:
         # Total
+        playtime_2_weeks_total = playtime_2_weeks_total
         m_t, s_t = divmod(playtime_2_weeks_total, 60)
         h_t, m_t = divmod(m_t, 60)
 

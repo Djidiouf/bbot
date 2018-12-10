@@ -1,12 +1,19 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-# import urllib.request  # Open url request on website
 import requests  # Open url request on website
 
 # Project modules
 import modules.connection
+import modules.meta_download
 import modules.textalteration
+
+
+def get_rate(code1, code2):
+    url = 'https://free.currencyconverterapi.com/api/v6/convert?q=%s_%s&compact=y' % (code1, code2)
+
+    filename = 'rate_%s_%s.json' % (code1, code2)
+    return modules.meta_download.dl_url_content(url, filename, 'cache-money', 0)
 
 
 def main(i_string, i_medium, i_alias=None):
@@ -43,17 +50,11 @@ def main(i_string, i_medium, i_alias=None):
     # rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
     # webpage.close()
 
-    url = 'https://free.currencyconverterapi.com/api/v5/convert?q=%s_%s&compact=y' % (code1, code2)
-    response = requests.get(url, stream=True)
 
-    if response.status_code == 200:
-        content = response.json()
+    rate = get_rate(code1, code2)
+    key_rate = "%s_%s" % (code1, code2)
 
-        key = "%s_%s" % (code1, code2)
-        rate = content[key]["val"]
-        rate = float(rate)
-
-        total = amount * rate
-        # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
-        # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
-        modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate, code2), i_medium, i_alias)
+    total = amount * rate[key_rate]['val']
+    # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
+    # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
+    modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate[key_rate]['val'], code2), i_medium, i_alias)

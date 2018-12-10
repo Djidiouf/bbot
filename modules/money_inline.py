@@ -8,6 +8,7 @@ import os
 
 # Project modules
 import modules.connection
+import modules.meta_download
 import modules.textalteration
 
 # Read config file
@@ -18,15 +19,9 @@ blacklisted_currencies = config['money_inline']['blacklisted_currencies'].split(
 
 def get_rate(code1, code2):
     url = 'https://free.currencyconverterapi.com/api/v6/convert?q=%s_%s&compact=y' % (code1, code2)
-    response = requests.get(url, stream=True)
 
-    if response.status_code == 200:
-        content = response.json()
-
-        key = "%s_%s" % (code1, code2)
-        rate = content[key]["val"]
-        rate = float(rate)
-        return rate
+    filename = 'rate_%s_%s.json' % (code1, code2)
+    return modules.meta_download.dl_url_content(url, filename, 'cache-money', 86400)
 
 
 def main(i_string, i_medium, i_alias=None):
@@ -111,16 +106,20 @@ def main(i_string, i_medium, i_alias=None):
 
         try:
             rate_aud = get_rate(code, "AUD")
+            key_aud = "%s_%s" % (code, 'AUD')
             rate_eur = get_rate(code, "EUR")
+            key_eur = "%s_%s" % (code, 'EUR')
             rate_gbp = get_rate(code, "GBP")
+            key_gbp = "%s_%s" % (code, 'GBP')
             rate_nok = get_rate(code, "NOK")
+            key_nok = "%s_%s" % (code, 'NOK')
         except:
             continue
 
-        total_aud = '{:,.2f}'.format(amount * rate_aud).replace(',', ' ')
-        total_eur = '{:,.2f}'.format(amount * rate_eur).replace(',', ' ')
-        total_gbp = '{:,.2f}'.format(amount * rate_gbp).replace(',', ' ')
-        total_nok = '{:,.2f}'.format(amount * rate_nok).replace(',', ' ')
+        total_aud = '{:,.2f}'.format(amount * rate_aud[key_aud]['val']).replace(',', ' ')
+        total_eur = '{:,.2f}'.format(amount * rate_eur[key_eur]['val']).replace(',', ' ')
+        total_gbp = '{:,.2f}'.format(amount * rate_gbp[key_gbp]['val']).replace(',', ' ')
+        total_nok = '{:,.2f}'.format(amount * rate_nok[key_nok]['val']).replace(',', ' ')
         amount = '{:,.2f}'.format(amount).replace(',', ' ')
 
         if code not in ["AUD", "EUR", "GBP", "NOK"]:
