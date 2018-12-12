@@ -113,13 +113,14 @@ def main(i_string, i_medium, i_alias=None):
             key_gbp = "%s_%s" % (code, 'GBP')
             rate_nok = get_rate(code, "NOK")
             key_nok = "%s_%s" % (code, 'NOK')
+
+            total_aud = '{:,.2f}'.format(amount * rate_aud[key_aud]['val']).replace(',', ' ')
+            total_eur = '{:,.2f}'.format(amount * rate_eur[key_eur]['val']).replace(',', ' ')
+            total_gbp = '{:,.2f}'.format(amount * rate_gbp[key_gbp]['val']).replace(',', ' ')
+            total_nok = '{:,.2f}'.format(amount * rate_nok[key_nok]['val']).replace(',', ' ')
         except:
             continue
 
-        total_aud = '{:,.2f}'.format(amount * rate_aud[key_aud]['val']).replace(',', ' ')
-        total_eur = '{:,.2f}'.format(amount * rate_eur[key_eur]['val']).replace(',', ' ')
-        total_gbp = '{:,.2f}'.format(amount * rate_gbp[key_gbp]['val']).replace(',', ' ')
-        total_nok = '{:,.2f}'.format(amount * rate_nok[key_nok]['val']).replace(',', ' ')
         amount = '{:,.2f}'.format(amount).replace(',', ' ')
 
         if code not in ["AUD", "EUR", "GBP", "NOK"]:

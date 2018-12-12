@@ -6,6 +6,7 @@ import os       # For instruction related to the OS
 import sys
 import requests  # Open url request on website
 import urllib.request  # Open url request on website
+import urllib.error  # Manage errors for urllib
 import time  # Give very precise time with time.clock()
 
 # Third-party modules
@@ -49,7 +50,11 @@ def dl_url_content(i_url, i_filename, i_folder, i_cache_age=None):
             return content
     elif retrieve_method == "urllib":
         if not os.path.isfile(filename_path) or os.stat(filename_path).st_mtime < (now - i_cache_age):
-            response = urllib.request.urlopen(url).read()
+            try:
+                response = urllib.request.urlopen(url).read()
+            except urllib.error.URLError as e:
+                pass
+
             with open(filename_path, 'wb') as f:
                 f.write(response)
             content = json.loads(response.decode('utf-8'))
