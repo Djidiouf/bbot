@@ -101,10 +101,9 @@ def main(i_string, i_medium, i_alias=None):
         if code in blacklisted_currencies:
             return
 
-        # amount needs to be int and not string
-        amount = float(amount)
-
         try:
+            amount = float(amount) # amount needs to be int and not string
+
             rate_aud = get_rate(code, "AUD")
             key_aud = "%s_%s" % (code, 'AUD')
             rate_eur = get_rate(code, "EUR")
