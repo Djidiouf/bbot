@@ -6,6 +6,11 @@ import modules.connection
 
 import math
 
+def floatstrip(x):
+    if x == int(x):
+        return str(int(x))
+    else:
+        return str(x)
 
 def main(i_string, i_medium, i_alias=None):
     math_functions = { # 9.2.1. Number-theoretic and representation functions
@@ -65,4 +70,4 @@ def main(i_string, i_medium, i_alias=None):
                        "nan": math.nan}                # math.nan
 
     compute_requested = eval(i_string, {"__builtins__": None}, math_functions)
-    modules.connection.send_message("%s = %f" % (i_string, compute_requested), i_medium, i_alias)
+    modules.connection.send_message("%s = %s" % (i_string, floatstrip(compute_requested)), i_medium, i_alias)

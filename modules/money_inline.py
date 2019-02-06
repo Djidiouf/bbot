@@ -44,7 +44,7 @@ def main(i_string, i_medium, i_alias=None):
 
         # Fix floating notation when coma are in used
         if "," in item:
-            item = modules.textalteration.string_replace(item, ",", ".")
+            item = modules.textalteration.string_replace(item, ",", "")  # Replaced "." by "": TEMPORARY FIX
 
         # Fix multiple floating dot and keep only the first one in string
         item = re.sub('\.(?=.*?\.)', '', item)
@@ -102,7 +102,9 @@ def main(i_string, i_medium, i_alias=None):
             return
 
         try:
-            amount = float(amount) # amount needs to be int and not string
+            amount = float(amount)  # amount needs to be a number and not a string
+            if amount == 0:  # Take care of $. without a number behind it or "0 AUD"
+                continue
 
             rate_aud = get_rate(code, "AUD")
             key_aud = "%s_%s" % (code, 'AUD')
