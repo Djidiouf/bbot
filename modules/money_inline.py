@@ -3,7 +3,6 @@ __author__ = 'Djidiouf'
 # Python built-in modules
 import configparser
 import re
-import requests
 import os
 
 # Project modules
@@ -17,8 +16,9 @@ config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'conf
 blacklisted_currencies = config['money_inline']['blacklisted_currencies'].split(",")
 
 
-def get_rate(code1, code2):
-    url = 'https://free.currencyconverterapi.com/api/v6/convert?q=%s_%s&compact=y' % (code1, code2)
+def get_rate(code1, code2, currencyconverter_api_key):
+    url = 'https://free.currencyconverterapi.com/api/v6/convert?apiKey=%s&q=%s_%s&compact=y'\
+          % (currencyconverter_api_key, code1, code2)
 
     filename = 'rate_%s_%s.json' % (code1, code2)
     return modules.meta_download.dl_url_content(url, filename, 'cache-money', 86400)
@@ -106,13 +106,20 @@ def main(i_string, i_medium, i_alias=None):
             if amount == 0:  # Take care of $. without a number behind it or "0 AUD"
                 continue
 
-            rate_aud = get_rate(code, "AUD")
+            # Retrieve API key
+            config = configparser.ConfigParser()
+            config.read(
+                os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+            currencyconverter_api_key = config['API_keys']['currencyconverter']
+
+            # Retrieve rates
+            rate_aud = get_rate(code, "AUD", currencyconverter_api_key)
             key_aud = "%s_%s" % (code, 'AUD')
-            rate_eur = get_rate(code, "EUR")
+            rate_eur = get_rate(code, "EUR", currencyconverter_api_key)
             key_eur = "%s_%s" % (code, 'EUR')
-            rate_gbp = get_rate(code, "GBP")
+            rate_gbp = get_rate(code, "GBP", currencyconverter_api_key)
             key_gbp = "%s_%s" % (code, 'GBP')
-            rate_nok = get_rate(code, "NOK")
+            rate_nok = get_rate(code, "NOK", currencyconverter_api_key)
             key_nok = "%s_%s" % (code, 'NOK')
 
             total_aud = '{:,.2f}'.format(amount * rate_aud[key_aud]['val']).replace(',', ' ')

@@ -1,7 +1,8 @@
 __author__ = 'Djidiouf'
 
 # Python built-in modules
-import requests  # Open url request on website
+import os       # For instruction related to the OS
+import configparser
 
 # Project modules
 import modules.connection
@@ -9,8 +10,9 @@ import modules.meta_download
 import modules.textalteration
 
 
-def get_rate(code1, code2):
-    url = 'https://free.currencyconverterapi.com/api/v6/convert?q=%s_%s&compact=y' % (code1, code2)
+def get_rate(code1, code2, currencyconverter_api_key):
+    url = 'https://free.currencyconverterapi.com/api/v6/convert?apiKey=%s&q=%s_%s&compact=y'\
+          % (currencyconverter_api_key, code1, code2)
 
     filename = 'rate_%s_%s.json' % (code1, code2)
     return modules.meta_download.dl_url_content(url, filename, 'cache-money', 0)
@@ -50,11 +52,14 @@ def main(i_string, i_medium, i_alias=None):
     # rate = float(webpage.read().split(separator1)[1].split(separator2)[0].strip())
     # webpage.close()
 
+    # Retrieve API key
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'config.cfg'))  # Absolute path is better
+    currencyconverter_api_key = config['API_keys']['currencyconverter']
 
-    rate = get_rate(code1, code2)
+    # Retrieve rates
+    rate = get_rate(code1, code2, currencyconverter_api_key)
     key_rate = "%s_%s" % (code1, code2)
 
     total = amount * rate[key_rate]['val']
-    # modules.connection.send_message('Rate: 1 %s = %.4f %s' % (code1, rate, code2))
-    # modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2))
     modules.connection.send_message('%.2f %s = %.2f %s' % (amount, code1, total, code2) + ' (1 %s = %.4f %s)' % (code1, rate[key_rate]['val'], code2), i_medium, i_alias)
